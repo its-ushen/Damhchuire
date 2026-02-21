@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-da_chain_side = "NyoBmLiHMDcNRHWrUp2mJei79DCY6mGEj9UdREvoQw1"
+da_chain_side = "91XcSJyrQZpmJifL9TggBXHrXELtNrP3xSZ217DVGjWs"
 
 [registry]
 url = "https://api.apr.dev"
