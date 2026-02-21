@@ -6,7 +6,7 @@ require "websocket-client-simple"
 module Solana
   class EventListener
     TAG = "[Solana::EventListener]"
-    PING_INTERVAL = 20 # seconds – keepalive via JSON-RPC getHealth
+    PING_INTERVAL = 10 # seconds – WebSocket protocol-level ping
 
     def initialize(ws_url: Solana::WS_URL, program_id: Solana::PROGRAM_ID)
       @ws_url     = ws_url
@@ -49,15 +49,14 @@ module Solana
         listener.send(:on_error, e)
       end
 
-      ws.on :close do
-        listener.send(:on_close)
+      ws.on :close do |e|
+        listener.send(:on_close, e)
       end
 
       last_ping = Time.now
       while ws.open? && @running
         if Time.now - last_ping >= PING_INTERVAL
-          ping_msg = { jsonrpc: "2.0", id: next_request_id, method: "getHealth" }.to_json
-          ws.send(ping_msg)
+          ws.send("", type: :ping)
           last_ping = Time.now
         end
         sleep 0.5
@@ -108,8 +107,9 @@ module Solana
       log "  #{e.backtrace&.first(5)&.join("\n  ")}" if e.respond_to?(:backtrace)
     end
 
-    def on_close
-      log "WebSocket closed."
+    def on_close(e)
+      reason = e.respond_to?(:message) ? e.message : e.inspect
+      log "WebSocket closed. Reason: #{reason}"
     end
 
     def process_notification(params)
