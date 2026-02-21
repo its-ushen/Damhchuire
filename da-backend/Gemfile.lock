@@ -114,6 +114,10 @@ GEM
     et-orbi (1.4.0)
       tzinfo
     event_emitter (0.2.6)
+    eventmachine (1.2.7)
+    faye-websocket (0.12.0)
+      eventmachine (>= 0.12.0)
+      websocket-driver (>= 0.8.0)
     ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-aarch64-linux-musl)
     ffi (1.17.3-arm-linux-gnu)
@@ -315,6 +319,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
+    solana_rpc_ruby (2.0.0)
+      faye-websocket (~> 0.11)
     solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -401,6 +407,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   debug
+  ed25519
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
@@ -410,6 +417,7 @@ DEPENDENCIES
   rails (~> 8.1.2)
   rubocop-rails-omakase
   selenium-webdriver
+  solana_rpc_ruby
   solid_cable
   solid_cache
   solid_queue
