@@ -13,6 +13,7 @@ module Solana
       @program_id = program_id
       @running    = true
       @request_id = 0
+      @seen_signatures = {}
     end
 
     def start
@@ -103,7 +104,8 @@ module Solana
     end
 
     def on_error(e)
-      log "WebSocket error: #{e.message}"
+      log "WebSocket error: #{e.class}: #{e.message}"
+      log "  #{e.backtrace&.first(5)&.join("\n  ")}" if e.respond_to?(:backtrace)
     end
 
     def on_close
@@ -123,15 +125,23 @@ module Solana
         return
       end
 
+      signature = value["signature"]
+      slot = result["context"]&.fetch("slot", nil)
+
+      # Deduplicate — skip if we've already processed this tx
+      if @seen_signatures[signature]
+        return
+      end
+      @seen_signatures[signature] = true
+
+      # Evict old entries to avoid unbounded growth
+      @seen_signatures.shift if @seen_signatures.size > 1000
+
       logs = value["logs"] || []
       events = AnchorEventDecoder.decode_logs(logs)
 
       events.each do |event|
-        handle_event(
-          event,
-          signature: value["signature"],
-          slot: result["context"]&.fetch("slot", nil)
-        )
+        handle_event(event, signature: signature, slot: slot)
       end
     end
 
@@ -143,7 +153,8 @@ module Solana
       log "  data (raw): <#{event[:data].bytesize} bytes>"
       log "  tx: #{signature}"
       log "  slot: #{slot}"
-      log "========================"
+      log "========================="
+      EventHandler.dispatch(:task_emitted, event.merge(signature: signature, slot: slot))
     end
 
     def graceful_shutdown
