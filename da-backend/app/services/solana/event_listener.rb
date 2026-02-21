@@ -6,6 +6,7 @@ require "websocket-client-simple"
 module Solana
   class EventListener
     TAG = "[Solana::EventListener]"
+    PING_INTERVAL = 20 # seconds – keepalive via JSON-RPC getHealth
 
     def initialize(ws_url: Solana::WS_URL, program_id: Solana::PROGRAM_ID)
       @ws_url     = ws_url
@@ -51,18 +52,29 @@ module Solana
         listener.send(:on_close)
       end
 
-      sleep 0.5 while ws.open? && @running
+      last_ping = Time.now
+      while ws.open? && @running
+        if Time.now - last_ping >= PING_INTERVAL
+          ping_msg = { jsonrpc: "2.0", id: next_request_id, method: "getHealth" }.to_json
+          ws.send(ping_msg)
+          last_ping = Time.now
+        end
+        sleep 0.5
+      end
       ws.close if ws.open?
     rescue => e
       log "Connection error: #{e.message}"
     end
 
+    def next_request_id
+      @request_id += 1
+    end
+
     def on_open(ws)
       log "Connected. Subscribing to logs..."
-      @request_id += 1
       subscribe_msg = {
         jsonrpc: "2.0",
-        id: @request_id,
+        id: next_request_id,
         method: "logsSubscribe",
         params: [
           { mentions: [@program_id] },
@@ -75,8 +87,11 @@ module Solana
     def on_message(msg)
       data = JSON.parse(msg.data)
 
-      if data["result"] && !data.key?("method")
-        log "Subscribed. ID=#{data["result"]}"
+      # Ignore RPC responses (subscription confirmations, health checks, etc.)
+      if data.key?("id") && !data.key?("method")
+        if data["result"].is_a?(Integer)
+          log "Subscribed. ID=#{data['result']}"
+        end
         return
       end
 
