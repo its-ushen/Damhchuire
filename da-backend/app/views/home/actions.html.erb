@@ -1,0 +1,76 @@
+<% content_for :title, "Actions — Damhchuire" %>
+
+<% actions = [
+  { name: "sol.transfer",    tag: "Native",     desc: "Transfer SOL between wallets. Signed, confirmed, and acknowledged on-chain." },
+  { name: "spl.transfer",    tag: "Token",      desc: "Transfer any SPL token to a recipient address using an associated token account." },
+  { name: "sol.stake",       tag: "Staking",    desc: "Delegate SOL to a validator and earn staking rewards on your behalf." },
+  { name: "sol.unstake",     tag: "Staking",    desc: "Deactivate a stake account and begin the cooldown before withdrawal." },
+  { name: "dex.swap",        tag: "DeFi",       desc: "Swap tokens via a DEX aggregator for best-price execution across liquidity pools." },
+  { name: "defi.deposit",    tag: "DeFi",       desc: "Deposit assets into a lending or liquidity protocol and receive LP tokens." },
+  { name: "defi.withdraw",   tag: "DeFi",       desc: "Withdraw assets from a DeFi protocol back to your wallet." },
+  { name: "nft.mint",        tag: "NFT",        desc: "Mint a new NFT from a collection with on-chain metadata and royalty configuration." },
+  { name: "nft.transfer",    tag: "NFT",        desc: "Transfer ownership of an NFT to a new wallet address." },
+  { name: "gov.vote",        tag: "Governance", desc: "Cast a vote on an active DAO proposal with configurable weight and rationale." },
+  { name: "multisig.approve",tag: "Security",   desc: "Approve a pending transaction in a multisig vault. Executes when threshold is met." },
+  { name: "program.cpi",     tag: "Advanced",   desc: "Invoke any on-chain program with a fully custom instruction payload and signers." },
+] %>
+
+<div class="page-wrap">
+
+  <div class="page-hdr">
+    <p class="page-hdr-tag">02 / Actions</p>
+    <h1 class="page-hdr-title">Library of actions.</h1>
+    <p class="page-hdr-body">
+      Every action is a first-class primitive — typed, versioned, and acknowledgment-capable.
+      Emit them with a single <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">client.emit()</code> call.
+    </p>
+  </div>
+
+  <div class="actions-body">
+
+    <div class="actions-filter">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="Native">Native</button>
+      <button class="filter-btn" data-filter="Token">Token</button>
+      <button class="filter-btn" data-filter="Staking">Staking</button>
+      <button class="filter-btn" data-filter="DeFi">DeFi</button>
+      <button class="filter-btn" data-filter="NFT">NFT</button>
+      <button class="filter-btn" data-filter="Governance">Governance</button>
+      <button class="filter-btn" data-filter="Security">Security</button>
+      <button class="filter-btn" data-filter="Advanced">Advanced</button>
+    </div>
+
+    <div class="actions-grid" id="actions-grid">
+      <% actions.each do |action| %>
+        <div class="action-card" data-tag="<%= action[:tag] %>">
+          <div class="action-card-header">
+            <span class="action-card-tag"><%= action[:tag] %></span>
+            <span class="action-card-arrow">↗</span>
+          </div>
+          <div class="action-card-name"><%= action[:name] %></div>
+          <div class="action-card-desc"><%= action[:desc] %></div>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+  const buttons = document.querySelectorAll('.filter-btn')
+  const cards   = document.querySelectorAll('.action-card')
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+
+      const filter = btn.dataset.filter
+      cards.forEach(card => {
+        const show = filter === 'all' || card.dataset.tag === filter
+        card.style.display = show ? '' : 'none'
+      })
+    })
+  })
+</script>

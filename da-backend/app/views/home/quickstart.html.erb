@@ -1,0 +1,153 @@
+<% content_for :title, "Quickstart — Damhchuire" %>
+
+<div class="page-wrap">
+
+  <div class="page-hdr">
+    <p class="page-hdr-tag">01 / Quickstart</p>
+    <h1 class="page-hdr-title">Up and running<br>in minutes.</h1>
+    <p class="page-hdr-body">
+      Four steps to emit your first on-chain action.
+      No prior Solana experience required.
+    </p>
+  </div>
+
+  <div class="qs-body">
+    <div class="qs-steps">
+
+      <%# ── Step 1 ── %>
+      <div class="qs-step">
+        <span class="qs-step-num">01</span>
+        <div class="qs-step-content">
+          <h2 class="qs-step-title">Install the SDK</h2>
+          <p class="qs-step-body">
+            Add <code>@damhchuire/sdk</code> to your project with your package manager of choice.
+            The SDK ships with full TypeScript definitions and zero peer dependencies.
+          </p>
+          <div class="code-window">
+            <div class="code-window-bar">
+              <span class="code-dot code-dot-r"></span>
+              <span class="code-dot code-dot-y"></span>
+              <span class="code-dot code-dot-g"></span>
+              <span class="code-window-title">terminal</span>
+            </div>
+            <pre class="code-block"><code><span class="c-comment"># npm</span>
+npm install @damhchuire/sdk
+
+<span class="c-comment"># yarn</span>
+yarn add @damhchuire/sdk
+
+<span class="c-comment"># pnpm</span>
+pnpm add @damhchuire/sdk</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Step 2 ── %>
+      <div class="qs-step">
+        <span class="qs-step-num">02</span>
+        <div class="qs-step-content">
+          <h2 class="qs-step-title">Initialize the client</h2>
+          <p class="qs-step-body">
+            Create a client instance by passing your Solana keypair and the target network.
+            In production, load your keypair from an environment variable or secret manager —
+            never commit private keys.
+          </p>
+          <div class="code-window">
+            <div class="code-window-bar">
+              <span class="code-dot code-dot-r"></span>
+              <span class="code-dot code-dot-y"></span>
+              <span class="code-dot code-dot-g"></span>
+              <span class="code-window-title">client.js</span>
+            </div>
+            <pre class="code-block"><code><span class="c-keyword">import</span> { <span class="c-fn">Damhchuire</span> } <span class="c-keyword">from</span> <span class="c-string">'@damhchuire/sdk'</span>
+<span class="c-keyword">import</span> { <span class="c-fn">Keypair</span> }     <span class="c-keyword">from</span> <span class="c-string">'@solana/web3.js'</span>
+
+<span class="c-keyword">const</span> keypair = <span class="c-fn">Keypair</span>.fromSecretKey(
+  Buffer.<span class="c-fn">from</span>(process.env.SOLANA_PRIVATE_KEY, <span class="c-string">'base64'</span>)
+)
+
+<span class="c-keyword">const</span> client = <span class="c-keyword">await</span> <span class="c-fn">Damhchuire</span>.init({
+  keypair,
+  network: <span class="c-string">'mainnet-beta'</span>,  <span class="c-dim">// or 'devnet'</span>
+})</code></pre>
+          </div>
+          <div class="qs-step-note">
+            The client automatically derives your program-derived address (PDA)
+            from the keypair and caches the Solana RPC connection.
+          </div>
+        </div>
+      </div>
+
+      <%# ── Step 3 ── %>
+      <div class="qs-step">
+        <span class="qs-step-num">03</span>
+        <div class="qs-step-content">
+          <h2 class="qs-step-title">Emit your first action</h2>
+          <p class="qs-step-body">
+            Call <code>client.emit()</code> with an action name and a payload.
+            The SDK serialises your payload with Borsh, signs the transaction,
+            and returns the on-chain signature once the action is confirmed.
+          </p>
+          <div class="code-window">
+            <div class="code-window-bar">
+              <span class="code-dot code-dot-r"></span>
+              <span class="code-dot code-dot-y"></span>
+              <span class="code-dot code-dot-g"></span>
+              <span class="code-window-title">emit.js</span>
+            </div>
+            <pre class="code-block"><code><span class="c-keyword">const</span> tx = <span class="c-keyword">await</span> client.<span class="c-fn">emit</span>(<span class="c-string">'sol.transfer'</span>, {
+  to:     <span class="c-string">'9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'</span>,
+  amount: <span class="c-num">1_000_000</span>,  <span class="c-dim">// lamports (0.001 SOL)</span>
+})
+
+console.<span class="c-fn">log</span>(<span class="c-string">'confirmed:'</span>, tx.signature)
+<span class="c-dim">// confirmed: 5Ht8yR...</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Step 4 ── %>
+      <div class="qs-step">
+        <span class="qs-step-num">04</span>
+        <div class="qs-step-content">
+          <h2 class="qs-step-title">Listen for acknowledgments</h2>
+          <p class="qs-step-body">
+            Subscribe to the event stream to receive acknowledgments when your actions
+            are processed on-chain. The handler receives the original task ID and
+            any response data emitted by the counterparty.
+          </p>
+          <div class="code-window">
+            <div class="code-window-bar">
+              <span class="code-dot code-dot-r"></span>
+              <span class="code-dot code-dot-y"></span>
+              <span class="code-dot code-dot-g"></span>
+              <span class="code-window-title">listen.js</span>
+            </div>
+            <pre class="code-block"><code>client.<span class="c-fn">on</span>(<span class="c-string">'ack'</span>, (event) => {
+  console.<span class="c-fn">log</span>(<span class="c-string">`task <span class="c-num">${event.taskId}</span> acknowledged`</span>)
+  console.<span class="c-fn">log</span>(<span class="c-string">'response:'</span>, event.data)
+})
+
+<span class="c-dim">// Keep the listener alive</span>
+<span class="c-keyword">await</span> client.<span class="c-fn">listen</span>()</code></pre>
+          </div>
+          <div class="qs-step-note">
+            The listener reconnects automatically on WebSocket disconnect.
+            Deploy it as a long-running process alongside your application.
+          </div>
+
+          <div class="hero-actions" style="margin-top:0.5rem;">
+            <%= link_to actions_path, class: "btn-primary" do %>
+              Explore actions <span>→</span>
+            <% end %>
+            <%= link_to new_connector_path, class: "btn-ghost" do %>
+              Create a connector
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
