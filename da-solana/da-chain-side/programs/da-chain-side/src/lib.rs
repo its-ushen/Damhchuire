@@ -1,26 +1,52 @@
 use anchor_lang::prelude::*;
 
-declare_id!("NyoBmLiHMDcNRHWrUp2mJei79DCY6mGEj9UdREvoQw1");
+declare_id!("91XcSJyrQZpmJifL9TggBXHrXELtNrP3xSZ217DVGjWs");
 
 #[program]
 pub mod da_chain_side {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, oracle_authority: Pubkey) -> Result<()> {
         let config = &mut ctx.accounts.config;
         config.authority = ctx.accounts.authority.key();
-        config.task_counter = 0;
+        config.oracle_authority = oracle_authority;
+        config.request_counter = 0;
         Ok(())
     }
 
-    pub fn emit_task(ctx: Context<EmitTask>, data: Vec<u8>) -> Result<()> {
+    pub fn on_call(ctx: Context<OnCall>, action_slug: String, params_json: Vec<u8>) -> Result<()> {
         let config = &mut ctx.accounts.config;
-        let task_id = config.task_counter;
-        config.task_counter = task_id + 1;
+        let request_id = config.request_counter;
+        config.request_counter = config
+            .request_counter
+            .checked_add(1)
+            .ok_or(ErrorCode::CounterOverflow)?;
 
-        emit!(TaskEmitted {
-            task_id,
-            data,
+        emit!(ActionRequested {
+            request_id,
+            action_slug,
+            params_json,
+        });
+
+        Ok(())
+    }
+
+    pub fn callback(
+        ctx: Context<Callback>,
+        request_id: u64,
+        ok: bool,
+        result_json: Vec<u8>,
+    ) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.oracle_authority.key(),
+            ctx.accounts.config.oracle_authority,
+            ErrorCode::UnauthorizedOracle
+        );
+
+        emit!(ActionCompleted {
+            request_id,
+            ok,
+            result_json,
         });
 
         Ok(())
@@ -32,7 +58,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8,
+        space = 8 + 32 + 32 + 8,
         seeds = [b"config"],
         bump,
     )]
@@ -43,25 +69,51 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-pub struct EmitTask<'info> {
+pub struct OnCall<'info> {
     #[account(
         mut,
         seeds = [b"config"],
         bump,
-        has_one = authority,
     )]
     pub config: Account<'info, Config>,
-    pub authority: Signer<'info>,
+    pub caller: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct Callback<'info> {
+    #[account(
+        seeds = [b"config"],
+        bump,
+    )]
+    pub config: Account<'info, Config>,
+    pub oracle_authority: Signer<'info>,
 }
 
 #[account]
 pub struct Config {
     pub authority: Pubkey,
-    pub task_counter: u64,
+    pub oracle_authority: Pubkey,
+    pub request_counter: u64,
 }
 
 #[event]
-pub struct TaskEmitted {
-    pub task_id: u64,
-    pub data: Vec<u8>,
+pub struct ActionRequested {
+    pub request_id: u64,
+    pub action_slug: String,
+    pub params_json: Vec<u8>,
+}
+
+#[event]
+pub struct ActionCompleted {
+    pub request_id: u64,
+    pub ok: bool,
+    pub result_json: Vec<u8>,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Only configured oracle authority can submit callbacks")]
+    UnauthorizedOracle,
+    #[msg("Request counter overflowed")]
+    CounterOverflow,
 }

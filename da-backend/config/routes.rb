@@ -10,4 +10,13 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   post "/tasks", to: "tasks#create"
+
+  resources :actions, only: %i[index show create update] do
+    member do
+      post :enable
+      post :disable
+    end
+  end
+
+  resources :action_invocations, only: %i[index show]
 end
