@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["name", "network", "trigger", "triggerValue", "action", "payload", "preview"]
+  static targets = ["name", "network", "trigger", "triggerValue", "action", "apiKey", "payload", "preview"]
 
   connect() {
     this.update()
@@ -13,6 +13,7 @@ export default class extends Controller {
     const trigger     = this.triggerTarget.value
     const triggerVal  = this.triggerValueTarget.value.trim()
     const action      = this.actionTarget.value
+    const hasApiKey   = this.hasApiKeyTarget && this.apiKeyTarget.value.trim().length > 0
     const payloadRaw  = this.payloadTarget.value.trim()
 
     const config = {
@@ -25,6 +26,7 @@ export default class extends Controller {
       },
       action: {
         type: action,
+        ...(hasApiKey ? { api_key: "••••••••" } : {}),
         ...(payloadRaw ? { payload: payloadRaw } : {}),
       },
     }
