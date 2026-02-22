@@ -39,23 +39,20 @@
           <span class="code-dot code-dot-r"></span>
           <span class="code-dot code-dot-y"></span>
           <span class="code-dot code-dot-g"></span>
-          <span class="code-window-title">quickstart.js</span>
+          <span class="code-window-title">quickstart.rs</span>
         </div>
-        <pre class="code-block"><code><span class="c-comment"># Install</span>
-npm install @damhchuire/sdk
+        <pre class="code-block"><code><span class="c-comment"># Cargo.toml</span>
+damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 
-<span class="c-keyword">import</span> { <span class="c-fn">Damhchuire</span> } <span class="c-keyword">from</span> <span class="c-string">'@damhchuire/sdk'</span>
+<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">OracleClient</span>, <span class="c-fn">WeatherNowParams</span>};
 
-<span class="c-keyword">const</span> client = <span class="c-keyword">await</span> <span class="c-fn">Damhchuire</span>.init({
-  keypair: myKeypair,
-  network: <span class="c-string">'mainnet-beta'</span>,
-})
+<span class="c-keyword">let</span> client = <span class="c-fn">OracleClient</span>::default();
+<span class="c-keyword">let</span> req = client.<span class="c-fn">weather_now_on_call</span>(<span class="c-fn">WeatherNowParams</span> {
+    city: <span class="c-string">"Dublin"</span>.to_string(),
+    unit: <span class="c-fn">Some</span>(<span class="c-string">"metric"</span>.to_string()),
+})?;
 
-<span class="c-dim">// Emit an on-chain action</span>
-<span class="c-keyword">await</span> client.<span class="c-fn">emit</span>(<span class="c-string">'transfer'</span>, {
-  to:     recipientAddress,
-  amount: <span class="c-num">1_000_000</span>,
-})</code></pre>
+<span class="c-dim">// emit req.action_slug + req.params_json on-chain</span></code></pre>
       </div>
     </div>
 
