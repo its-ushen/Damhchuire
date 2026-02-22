@@ -5,3 +5,14 @@ target
 node_modules
 test-ledger
 .yarn
+
+# Local IDE/project state
+.idea/
+
+# Local planning/scratch docs
+DEMO_ORACLE_IMPLEMENTATION_PLAN.md
+
+# Local Solana tool artifacts and generated deployment files
+da-solana/da-chain-side/.surfpool/
+da-solana/da-chain-side/txtx.yml
+da-solana/da-chain-side/runbooks/

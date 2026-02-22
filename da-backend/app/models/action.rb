@@ -19,6 +19,7 @@ class Action < ApplicationRecord
   validates :url_template, presence: true
   validates :http_method, inclusion: { in: HTTP_METHODS }
   validate :headers_template_is_object
+  validate :body_template_is_object
   validate :request_schema_is_object
   validate :response_schema_is_object
 
@@ -32,6 +33,7 @@ class Action < ApplicationRecord
       http_method: http_method,
       url_template: url_template,
       headers_template: headers_template,
+      body_template: body_template,
       request_schema: request_schema,
       response_schema: response_schema,
       enabled: enabled,
@@ -47,6 +49,7 @@ class Action < ApplicationRecord
 
   def normalize_json_columns
     self.headers_template = coerce_json_column(headers_template, default: {})
+    self.body_template = coerce_json_column(body_template, default: {})
     self.request_schema = coerce_json_column(request_schema, default: {})
     self.response_schema = coerce_json_column(response_schema, default: {})
   end
@@ -68,6 +71,10 @@ class Action < ApplicationRecord
 
   def headers_template_is_object
     errors.add(:headers_template, "must be a JSON object") unless headers_template.is_a?(Hash)
+  end
+
+  def body_template_is_object
+    errors.add(:body_template, "must be a JSON object") unless body_template.is_a?(Hash)
   end
 
   def request_schema_is_object
