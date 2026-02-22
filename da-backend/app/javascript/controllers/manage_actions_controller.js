@@ -72,6 +72,39 @@ export default class extends Controller {
     if (event.target === this.backdropTarget) this.closeEdit()
   }
 
+  async deleteAction() {
+    const id = this.#editingId
+    if (!id) return
+    if (!confirm("Delete this action? This cannot be undone.")) return
+
+    try {
+      const res = await fetch(`/actions/${id}`, {
+        method:  "DELETE",
+        headers: { "Accept": "application/json" },
+      })
+
+      if (res.ok) {
+        const row = this.listTarget.querySelector(`[data-row-id="${id}"]`)
+        if (row) row.remove()
+
+        const remaining = this.listTarget.querySelectorAll("[data-row-id]").length
+        if (this.hasCountTarget) {
+          this.countTarget.textContent = remaining === 1 ? "1 action" : `${remaining} actions`
+        }
+        if (remaining === 0) {
+          this.listTarget.innerHTML = '<p class="action-list-empty">No actions yet. <a href="/actions" class="form-hint-link">Create one →</a></p>'
+        }
+
+        this.closeEdit()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        this.#showErrors(data.errors || ["Could not delete action."])
+      }
+    } catch (_) {
+      this.#showErrors(["Could not delete action."])
+    }
+  }
+
   async saveEdit() {
     const id = this.#editingId
     if (!id) return

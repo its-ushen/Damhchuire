@@ -1,6 +1,6 @@
 class ActionsController < ApplicationController
   skip_before_action :verify_authenticity_token
-  before_action :set_action, only: %i[show update enable disable]
+  before_action :set_action, only: %i[show update destroy enable disable]
 
   def index
     render json: Action.order(:slug).map { |action| serialize_action(action) }
@@ -38,6 +38,11 @@ class ActionsController < ApplicationController
     end
   end
 
+  def destroy
+    @action.destroy!
+    head :no_content
+  end
+
   def enable
     @action.update!(enabled: true)
     render json: serialize_action(@action)
@@ -57,8 +62,7 @@ class ActionsController < ApplicationController
   end
 
   def action_params
-    raw = params[:action].presence || params
-    raw_hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw.to_h
+    raw_hash = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
 
     raw_hash.with_indifferent_access.slice(
       :slug,

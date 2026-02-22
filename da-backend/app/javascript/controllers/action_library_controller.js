@@ -4,10 +4,12 @@ export default class extends Controller {
   static targets = ["backdrop", "title", "credSelect", "useBtn"]
 
   #activeSlug = null
+  #activePayload = null
 
   async openModal(event) {
     const card = event.currentTarget
-    this.#activeSlug = card.dataset.actionSlug
+    this.#activeSlug   = card.dataset.actionSlug
+    this.#activePayload = JSON.parse(card.dataset.actionPayload)
 
     this.titleTarget.textContent      = card.dataset.actionName
     this.useBtnTarget.disabled        = true
@@ -37,9 +39,33 @@ export default class extends Controller {
     this.useBtnTarget.disabled = !this.credSelectTarget.value
   }
 
-  use() {
-    if (!this.credSelectTarget.value || !this.#activeSlug) return
-    this.closeModal()
+  async use() {
+    if (!this.credSelectTarget.value || !this.#activePayload) return
+
+    const btn      = this.useBtnTarget
+    const original = btn.textContent
+    btn.disabled   = true
+    btn.textContent = "Adding…"
+
+    try {
+      const res = await fetch("/actions", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body:    JSON.stringify(this.#activePayload),
+      })
+
+      if (res.ok) {
+        window.location.href = "/actions/manage"
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert((data.errors || []).join(", ") || "Something went wrong.")
+        btn.disabled  = false
+        btn.textContent = original
+      }
+    } catch (_) {
+      btn.disabled  = false
+      btn.textContent = original
+    }
   }
 
   // ── Private ─────────────────────────────────────────────

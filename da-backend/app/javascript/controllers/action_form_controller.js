@@ -68,7 +68,7 @@ export default class extends Controller {
       const data = await res.json()
 
       if (res.ok) {
-        btn.textContent = "Created ✓"
+        window.location.href = "/actions/manage"
       } else {
         btn.disabled = false
         btn.innerHTML = original
