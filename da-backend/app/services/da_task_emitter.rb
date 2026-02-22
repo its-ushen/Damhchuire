@@ -6,7 +6,7 @@ require "uri"
 require "ed25519"
 
 class DaTaskEmitter
-  PROGRAM_ID = "91XcSJyrQZpmJifL9TggBXHrXELtNrP3xSZ217DVGjWs"
+  PROGRAM_ID = ENV.fetch("SOLANA_PROGRAM_ID", "91XcSJyrQZpmJifL9TggBXHrXELtNrP3xSZ217DVGjWs")
 
   DEFAULT_BLOCKHASH_COMMITMENT = "confirmed"
   DEFAULT_PREFLIGHT_COMMITMENT = "confirmed"
@@ -48,10 +48,16 @@ class DaTaskEmitter
 
   def callback(request_id:, ok:, result_json:)
     payload = result_json.is_a?(String) ? result_json : JSON.generate(result_json)
+    rid = request_id.to_i
+
+    # Always include the invoice PDA as an extra writable account.
+    # For contracts that don't use it, it harmlessly sits in ctx.remaining_accounts.
+    invoice_pda = derive_invoice_pda(rid)
+    extra_accounts = [ { pubkey: invoice_pda, writable: true } ]
 
     send_with_retry do
-      instruction_data = build_callback_instruction_data(request_id.to_i, !!ok, payload.bytes)
-      send_instruction(instruction_data: instruction_data, config_writable: false)
+      instruction_data = build_callback_instruction_data(rid, !!ok, payload.bytes)
+      send_instruction(instruction_data: instruction_data, config_writable: false, extra_accounts: extra_accounts)
     end
   end
 
@@ -77,10 +83,10 @@ class DaTaskEmitter
     RETRYABLE_RPC_MARKERS.any? { |marker| message.include?(marker) }
   end
 
-  def send_instruction(instruction_data:, config_writable:)
+  def send_instruction(instruction_data:, config_writable:, extra_accounts: [])
     blockhash = fetch_blockhash
     config_pda = derive_config_pda
-    message = build_message(blockhash, config_pda, instruction_data, config_writable: config_writable)
+    message = build_message(blockhash, config_pda, instruction_data, config_writable: config_writable, extra_accounts: extra_accounts)
 
     signature = @signing_key.sign(message.pack("C*"))
     tx_bytes = encode_transaction(signature.bytes, message)
@@ -136,18 +142,27 @@ class DaTaskEmitter
     bytes
   end
 
-  # Iterate bump 255->0, return first SHA256 hash that is NOT on the ed25519 curve.
-  def derive_config_pda
+  # Derive a PDA from arbitrary seeds. Each element of `seeds` is an array of bytes.
+  # Iterates bump 255->0, returns first SHA256 hash NOT on the ed25519 curve.
+  def derive_pda(seeds)
     program_id_bytes = base58_decode(PROGRAM_ID)
-    seed = "config".bytes
+    combined_seed = seeds.flatten
 
     255.downto(0) do |bump|
-      hash_input = seed + [ bump ] + program_id_bytes + "ProgramDerivedAddress".bytes
+      hash_input = combined_seed + [ bump ] + program_id_bytes + "ProgramDerivedAddress".bytes
       hash = Digest::SHA256.digest(hash_input.pack("C*")).bytes
       return hash unless on_ed25519_curve?(hash)
     end
 
-    raise "Could not find a valid config PDA"
+    raise "Could not find a valid PDA for seeds"
+  end
+
+  def derive_config_pda
+    derive_pda([ "config".bytes ])
+  end
+
+  def derive_invoice_pda(request_id)
+    derive_pda([ "invoice".bytes, [ request_id ].pack("Q<").bytes ])
   end
 
   # Returns true if the 32-byte array represents a point on the ed25519 curve.
@@ -206,29 +221,58 @@ class DaTaskEmitter
 
   # Solana transaction message
   #
-  # Account order:
-  # [0] authority (fee payer / signer / writable)
-  # [1] config_pda (writable for on_call, readonly for callback)
-  # [2] program_id (readonly)
+  # Solana requires accounts ordered by role:
+  #   [writable signers] [readonly signers] [writable non-signers] [readonly non-signers]
   #
-  # Instruction account indices: [1, 0] (config first, authority second)
-  def build_message(blockhash, config_pda, instruction_data, config_writable:)
+  # The header encodes (num_required_signatures, num_readonly_signed, num_readonly_unsigned)
+  # so the runtime knows which accounts are writable/readonly.
+  #
+  # Instruction account indices reference positions in this ordered list:
+  #   config, oracle_authority (=authority), then any extras...
+  def build_message(blockhash, config_pda, instruction_data, config_writable:, extra_accounts: [])
     authority_bytes = @public_key_bytes
     program_id_bytes = base58_decode(PROGRAM_ID)
     blockhash_bytes = base58_decode(blockhash)
 
-    num_readonly_unsigned = config_writable ? 1 : 2
+    # Categorize non-signer accounts with their roles (for index lookup later)
+    non_signers = []
+    non_signers << { bytes: config_pda, writable: config_writable, role: :config }
+    extra_accounts.each { |ea| non_signers << { bytes: ea[:pubkey], writable: ea[:writable], role: :extra } }
+    non_signers << { bytes: program_id_bytes, writable: false, role: :program }
+
+    # Sort: writable non-signers first, then readonly non-signers
+    writable_ns = non_signers.select { |a| a[:writable] }
+    readonly_ns = non_signers.reject { |a| a[:writable] }
+    sorted_ns = writable_ns + readonly_ns
+
+    # Full ordered account list: [authority (writable signer)] + sorted non-signers
+    all_accounts = [ { bytes: authority_bytes, role: :authority } ] + sorted_ns
+
+    # Flatten bytes
+    accounts_bytes = all_accounts.flat_map { |a| a[:bytes] }
+
+    # Look up indices by role
+    config_index = all_accounts.index { |a| a[:role] == :config }
+    authority_index = 0
+    extra_indices = all_accounts.each_with_index.filter_map { |a, i| i if a[:role] == :extra }
+    program_index = all_accounts.index { |a| a[:role] == :program }
+
+    num_accounts = all_accounts.length
+    num_readonly_unsigned = readonly_ns.length
+
     header = [ 1, 0, num_readonly_unsigned ]
-    accounts = authority_bytes + config_pda + program_id_bytes
+
+    # Instruction account indices: config, oracle_authority/caller, extras...
+    ix_indices = [ config_index, authority_index ] + extra_indices
 
     instruction =
-      [2] +
-      compact_u16(2) + [1, 0] +
+      [ program_index ] +
+      compact_u16(ix_indices.length) + ix_indices +
       compact_u16(instruction_data.length) +
       instruction_data
 
     header +
-      compact_u16(3) + accounts +
+      compact_u16(num_accounts) + accounts_bytes +
       blockhash_bytes +
       compact_u16(1) + instruction
   end
