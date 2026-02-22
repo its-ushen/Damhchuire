@@ -440,90 +440,50 @@ a {
    Quickstart page
    ───────────────────────────────────────────────────────── */
 .qs-body {
-  padding: 4rem 0 6rem;
-}
-
-.qs-steps {
+  padding: 3rem 0 6rem;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2rem;
 }
 
-.qs-step {
-  display: grid;
-  grid-template-columns: 5rem 1fr;
-  gap: 0 2.5rem;
-  padding: 3.5rem 0;
-  border-bottom: 1px solid var(--border);
-  position: relative;
+.qs-code-block {
+  padding: 2rem 2rem 2.25rem;
+  font-size: 0.8rem;
+  line-height: 2;
 }
 
-.qs-step:last-child {
-  border-bottom: none;
-}
-
-.qs-step-num {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-subtle);
-  padding-top: 0.2rem;
-  position: sticky;
-  top: calc(var(--nav-height) + 1.5rem);
-  align-self: start;
-}
-
-.qs-step-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.qs-step-title {
-  font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.qs-step-body {
-  font-size: 0.9375rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1.75;
-  max-width: 60ch;
-}
-
-.qs-step-body code {
+/* Copy button — sits in the code-window-bar */
+.code-copy-btn {
+  margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.8em;
-  background: var(--bg-subtle);
-  padding: 0.15em 0.45em;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #444;
+  background: transparent;
+  border: 1px solid #2A2A2A;
   border-radius: 3px;
-  color: var(--text);
-}
-
-.qs-step-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  background: var(--bg-warm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.875rem 1rem;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
   line-height: 1.6;
 }
 
-.qs-step-note::before {
-  content: '→';
-  font-family: var(--font-mono);
-  color: var(--text-subtle);
-  flex-shrink: 0;
-  margin-top: 0.05rem;
+.code-copy-btn:hover {
+  color: var(--code-text);
+  border-color: #444;
+}
+
+.code-copy-btn.copied {
+  color: var(--code-string);
+  border-color: var(--code-string);
+}
+
+.qs-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  align-self: flex-start;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -815,10 +775,6 @@ a {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .qs-step {
-    grid-template-columns: 3.5rem 1fr;
-    gap: 0 1.5rem;
-  }
 }
 
 @media (max-width: 600px) {
@@ -828,14 +784,5 @@ a {
 
   .page-wrap {
     padding: 0 1.25rem;
-  }
-
-  .qs-step {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
-  .qs-step-num {
-    position: static;
   }
 }
