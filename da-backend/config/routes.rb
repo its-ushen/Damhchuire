@@ -16,4 +16,6 @@ Rails.application.routes.draw do
   end
 
   resources :action_invocations, only: %i[index show], defaults: { format: :json }
+  get "/actions", to: "home#actions", as: :actions
+  get "/connectors/new", to: "home#new_connector", as: :new_connector
 end

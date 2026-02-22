@@ -1,29 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title><%= content_for(:title) || "Da Backend" %></title>
+    <title><%= content_for(:title) || "Damhchuire" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Da Backend">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="The action layer for Solana. Connect any workflow to the chain in minutes.">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="<%= root_path %>" class="nav-logo">DA</a>
+        <div class="nav-links">
+          <a href="<%= quickstart_path %>" class="nav-link">Quickstart</a>
+          <a href="<%= actions_path %>" class="nav-link">Actions</a>
+          <a href="<%= new_connector_path %>" class="nav-link">Connectors</a>
+        </div>
+        <a href="<%= quickstart_path %>" class="nav-cta">Get started <span class="nav-cta-arrow">→</span></a>
+      </div>
+    </nav>
+
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

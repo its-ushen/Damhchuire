@@ -1,0 +1,69 @@
+<% content_for :title, "Quickstart — Damhchuire" %>
+
+<div class="page-wrap" data-controller="copy-code">
+
+  <div class="page-hdr">
+    <p class="page-hdr-tag">01 / Quickstart</p>
+    <h1 class="page-hdr-title">Up and running<br>in minutes.</h1>
+    <p class="page-hdr-body">
+      Install, init, emit, listen — everything you need to send your first on-chain action.
+    </p>
+  </div>
+
+  <div class="qs-body">
+    <div class="code-window">
+      <div class="code-window-bar">
+        <span class="code-dot code-dot-r"></span>
+        <span class="code-dot code-dot-y"></span>
+        <span class="code-dot code-dot-g"></span>
+        <span class="code-window-title">quickstart.js</span>
+        <button
+          class="code-copy-btn"
+          data-copy-code-target="btn"
+          data-action="click->copy-code#copy"
+        >Copy</button>
+      </div>
+
+      <pre class="code-block qs-code-block" data-copy-code-target="code"><code><span class="c-comment"># ── 1. Install ─────────────────────────────────────────────────</span>
+npm install @damhchuire/sdk
+
+<span class="c-comment"># ── 2. Initialize ──────────────────────────────────────────────</span>
+<span class="c-keyword">import</span> { <span class="c-fn">Damhchuire</span> } <span class="c-keyword">from</span> <span class="c-string">'@damhchuire/sdk'</span>
+<span class="c-keyword">import</span> { <span class="c-fn">Keypair</span> }     <span class="c-keyword">from</span> <span class="c-string">'@solana/web3.js'</span>
+
+<span class="c-keyword">const</span> keypair = <span class="c-fn">Keypair</span>.fromSecretKey(
+  Buffer.<span class="c-fn">from</span>(process.env.SOLANA_PRIVATE_KEY, <span class="c-string">'base64'</span>)
+)
+
+<span class="c-keyword">const</span> client = <span class="c-keyword">await</span> <span class="c-fn">Damhchuire</span>.init({
+  keypair,
+  network: <span class="c-string">'mainnet-beta'</span>,
+})
+
+<span class="c-comment"># ── 3. Emit ────────────────────────────────────────────────────</span>
+<span class="c-keyword">const</span> tx = <span class="c-keyword">await</span> client.<span class="c-fn">emit</span>(<span class="c-string">'sol.transfer'</span>, {
+  to:     <span class="c-string">'9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'</span>,
+  amount: <span class="c-num">1_000_000</span>,  <span class="c-dim">// lamports — 0.001 SOL</span>
+})
+
+console.<span class="c-fn">log</span>(tx.signature)  <span class="c-dim">// 5Ht8yR...</span>
+
+<span class="c-comment"># ── 4. Listen ──────────────────────────────────────────────────</span>
+client.<span class="c-fn">on</span>(<span class="c-string">'ack'</span>, ({ taskId, data }) => {
+  console.<span class="c-fn">log</span>(<span class="c-string">`ack: task <span class="c-num">${taskId}</span>`</span>, data)
+})
+
+<span class="c-keyword">await</span> client.<span class="c-fn">listen</span>()  <span class="c-dim">// reconnects automatically</span></code></pre>
+    </div>
+
+    <div class="qs-footer">
+      <%= link_to actions_path, class: "btn-primary" do %>
+        Explore actions <span>→</span>
+      <% end %>
+      <%= link_to new_connector_path, class: "btn-ghost" do %>
+        Create a connector
+      <% end %>
+    </div>
+  </div>
+
+</div>

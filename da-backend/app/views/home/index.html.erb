@@ -1,0 +1,63 @@
+<% content_for :title, "Damhchuire — The action layer for Solana" %>
+
+<section class="hero">
+  <div class="hero-inner">
+
+    <%# ── Left: copy ── %>
+    <div class="hero-content">
+      <span class="hero-tag">
+        <span class="hero-tag-dot"></span>
+        SDK · v0.1.0 · Solana
+      </span>
+
+      <h1 class="hero-heading">
+        The action<br>
+        layer for<br>
+        <em>Solana.</em>
+      </h1>
+
+      <p class="hero-body">
+        Emit, coordinate, and acknowledge on-chain actions
+        from any environment. A lightweight SDK designed
+        to get out of your way.
+      </p>
+
+      <div class="hero-actions">
+        <%= link_to quickstart_path, class: "btn-primary" do %>
+          Get started <span>→</span>
+        <% end %>
+        <%= link_to actions_path, class: "btn-ghost" do %>
+          Browse actions
+        <% end %>
+      </div>
+    </div>
+
+    <%# ── Right: code window ── %>
+    <div class="hero-code-wrap">
+      <div class="code-window">
+        <div class="code-window-bar">
+          <span class="code-dot code-dot-r"></span>
+          <span class="code-dot code-dot-y"></span>
+          <span class="code-dot code-dot-g"></span>
+          <span class="code-window-title">quickstart.js</span>
+        </div>
+        <pre class="code-block"><code><span class="c-comment"># Install</span>
+npm install @damhchuire/sdk
+
+<span class="c-keyword">import</span> { <span class="c-fn">Damhchuire</span> } <span class="c-keyword">from</span> <span class="c-string">'@damhchuire/sdk'</span>
+
+<span class="c-keyword">const</span> client = <span class="c-keyword">await</span> <span class="c-fn">Damhchuire</span>.init({
+  keypair: myKeypair,
+  network: <span class="c-string">'mainnet-beta'</span>,
+})
+
+<span class="c-dim">// Emit an on-chain action</span>
+<span class="c-keyword">await</span> client.<span class="c-fn">emit</span>(<span class="c-string">'transfer'</span>, {
+  to:     recipientAddress,
+  amount: <span class="c-num">1_000_000</span>,
+})</code></pre>
+      </div>
+    </div>
+
+  </div>
+</section>
