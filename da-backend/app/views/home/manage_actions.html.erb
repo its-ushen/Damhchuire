@@ -1,0 +1,114 @@
+<% content_for :title, "Manage Actions — Damhchuire" %>
+
+<div class="page-wrap"
+     data-controller="manage-actions">
+
+  <div class="page-hdr">
+    <p class="page-hdr-tag">05 / Manage Actions</p>
+    <h1 class="page-hdr-title">Your actions.</h1>
+    <p class="page-hdr-body">
+      View and control your configured actions. Toggle them on or off without losing their configuration.
+    </p>
+  </div>
+
+  <div class="manage-body">
+
+    <div class="manage-toolbar">
+      <span class="manage-count" data-manage-actions-target="count"></span>
+      <a href="<%= actions_path %>" class="manage-new-btn">New action <span>→</span></a>
+    </div>
+
+    <div class="action-list" data-manage-actions-target="list">
+      <p class="action-list-empty">Loading…</p>
+    </div>
+
+  </div>
+
+  <%# ── Edit modal ── %>
+  <div class="modal-backdrop"
+       data-manage-actions-target="backdrop"
+       data-action="click->manage-actions#backdropClose keydown.esc@window->manage-actions#closeEdit">
+
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+      <div class="modal-hdr">
+        <h2 class="modal-title" id="modal-title">Edit action</h2>
+        <button class="modal-close" aria-label="Close" data-action="click->manage-actions#closeEdit">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="modal-errors" data-manage-actions-target="modalErrors"></div>
+
+        <div class="form-section">
+          <span class="form-section-title">Identity</span>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-slug">Slug</label>
+            <input id="edit-slug" type="text" class="form-input"
+              data-manage-actions-target="editSlug">
+            <span class="form-hint">Lowercase, dots and hyphens allowed.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-name">Name</label>
+            <input id="edit-name" type="text" class="form-input"
+              data-manage-actions-target="editName">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-description">
+              Description <span style="color:var(--text-subtle);font-weight:400;">(optional)</span>
+            </label>
+            <input id="edit-description" type="text" class="form-input"
+              data-manage-actions-target="editDescription">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-title">Request</span>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-method">HTTP method</label>
+            <select id="edit-method" class="form-select"
+              data-manage-actions-target="editMethod">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-url">URL template</label>
+            <input id="edit-url" type="text" class="form-input"
+              placeholder="https://api.example.com/{{endpoint}}"
+              data-manage-actions-target="editUrl">
+            <span class="form-hint">Use <code style="font-family:var(--font-mono);font-size:0.85em;">{{variable}}</code> for dynamic values.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-headers">
+              Headers template <span style="color:var(--text-subtle);font-weight:400;">(optional)</span>
+            </label>
+            <textarea id="edit-headers" class="form-textarea"
+              placeholder='{ "Authorization": "Bearer {{credential.my_api_key}}" }'
+              data-manage-actions-target="editHeaders"></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-cancel" data-action="click->manage-actions#closeEdit">Cancel</button>
+        <button class="modal-save" data-manage-actions-target="saveBtn"
+          data-action="click->manage-actions#saveEdit">
+          Save changes <span>→</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

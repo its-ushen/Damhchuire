@@ -3,5 +3,6 @@ class HomeController < ApplicationController
   def quickstart; end
   def actions; end
   def actions_library; end
+  def manage_actions; end
   def credentials; end
 end
