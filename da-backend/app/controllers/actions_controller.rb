@@ -48,8 +48,9 @@ class ActionsController < ApplicationController
 
   def action_params
     raw = params[:action].presence || params
-    raw_hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
-    ActionController::Parameters.new(raw_hash).permit(
+    raw_hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw.to_h
+
+    raw_hash.with_indifferent_access.slice(
       :slug,
       :name,
       :description,
@@ -57,6 +58,7 @@ class ActionsController < ApplicationController
       :http_method,
       :url_template,
       :headers_template,
+      :body_template,
       :request_schema,
       :response_schema
     )
@@ -73,6 +75,7 @@ class ActionsController < ApplicationController
         :http_method,
         :url_template,
         :headers_template,
+        :body_template,
         :request_schema,
         :response_schema,
         :created_at,

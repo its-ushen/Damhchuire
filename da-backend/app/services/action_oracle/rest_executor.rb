@@ -63,7 +63,7 @@ module ActionOracle
       request_klass = REQUEST_CLASS[method]
       raise ArgumentError, "unsupported HTTP method: #{method}" unless request_klass
 
-      url = TemplateRenderer.render_string(@action.url_template, @params)
+      url = TemplateRenderer.render_string(@action.url_template, template_values)
       uri = URI.parse(url)
       validate_target!(uri)
 
@@ -72,8 +72,9 @@ module ActionOracle
       headers.each { |key, value| request[key.to_s] = value.to_s }
 
       if request.request_body_permitted?
+        body = rendered_body
         request["Content-Type"] ||= "application/json"
-        request.body = JSON.generate(@params)
+        request.body = JSON.generate(body)
       end
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -94,8 +95,26 @@ module ActionOracle
 
     def rendered_headers
       template = @action.headers_template.is_a?(Hash) ? @action.headers_template : {}
-      rendered = TemplateRenderer.render_json(template, @params)
+      rendered = TemplateRenderer.render_json(template, template_values)
       rendered.is_a?(Hash) ? rendered : {}
+    end
+
+    def rendered_body
+      template = @action.body_template.is_a?(Hash) ? @action.body_template : {}
+      return @params if template.blank?
+
+      rendered = TemplateRenderer.render_json(template, template_values)
+      rendered.is_a?(Hash) ? rendered : @params
+    end
+
+    def template_values
+      @template_values ||= @params.merge("credentials" => credential_values)
+    end
+
+    def credential_values
+      Credential.where.not(name: [ nil, "" ]).each_with_object({}) do |credential, values|
+        values[credential.name] = credential.value
+      end
     end
 
     def normalize_headers(raw_headers)

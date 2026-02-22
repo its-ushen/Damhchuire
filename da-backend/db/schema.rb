@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_21_230100) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_22_001000) do
   create_table "action_invocations", id: :string, force: :cascade do |t|
     t.string "action_slug", null: false
     t.json "action_snapshot"
@@ -42,6 +42,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_21_230100) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.text "url_template", null: false
+    t.json "body_template", default: {}, null: false
     t.index ["slug"], name: "index_actions_on_slug", unique: true
   end
 
