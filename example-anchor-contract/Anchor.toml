@@ -8,6 +8,7 @@ skip-lint = false
 [programs.localnet]
 action_signal_client = "EbAzCoVqhvdxhoTit1puKFHKLUQzftrLzTTgQDuspMEG"
 minimal_action_client = "EKREuFxufeoy2uyw5GKcwwMonYQipmnoVtCKcpGzr55U"
+ai_chat_client = "AiChatC1ient1111111111111111111111111111111"
 
 [registry]
 url = "https://api.apr.dev"

@@ -32,6 +32,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-chat-client"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "damhchuire-sdk",
+ "serde_json",
+]
+
+[[package]]
 name = "anchor-attribute-access-control"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
