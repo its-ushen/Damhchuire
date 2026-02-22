@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   post "/tasks", to: "tasks#create"
+  get "/sdk/catalog.json", to: "sdk_catalog#show"
 
   root to: "home#index"
   get "/quickstart", to: "home#quickstart", as: :quickstart
