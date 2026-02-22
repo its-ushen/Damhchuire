@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "digest"
 require "websocket-client-simple"
 
 module Solana
@@ -13,7 +14,7 @@ module Solana
       @program_id = program_id
       @running    = true
       @request_id = 0
-      @seen_signatures = {}
+      @seen_event_keys = {}
     end
 
     def start
@@ -128,38 +129,52 @@ module Solana
       signature = value["signature"]
       slot = result["context"]&.fetch("slot", nil)
 
-      # Deduplicate — skip if we've already processed this tx
-      if @seen_signatures[signature]
-        return
-      end
-      @seen_signatures[signature] = true
-
-      # Evict old entries to avoid unbounded growth
-      @seen_signatures.shift if @seen_signatures.size > 1000
-
       logs = value["logs"] || []
       events = AnchorEventDecoder.decode_logs(logs)
 
       events.each do |event|
+        next if already_seen_event?(signature, event)
+
         handle_event(event, signature: signature, slot: slot)
       end
     end
 
     def handle_event(event, signature:, slot:)
-      hex = event[:data].unpack1("H*")
-      log "=== TaskEmitted Event ==="
-      log "  task_id: #{event[:task_id]}"
-      log "  data (hex): #{hex}"
-      log "  data (raw): <#{event[:data].bytesize} bytes>"
-      log "  tx: #{signature}"
-      log "  slot: #{slot}"
-      log "========================="
-      EventHandler.dispatch(:task_emitted, event.merge(signature: signature, slot: slot))
+      case event[:event_type]
+      when :action_requested
+        log "=== ActionRequested Event ==="
+        log "  request_id: #{event[:request_id]}"
+        log "  action_slug: #{event[:action_slug]}"
+        log "  params_json (raw): <#{event[:params_json].bytesize} bytes>"
+        log "  tx: #{signature}"
+        log "  slot: #{slot}"
+        log "============================="
+        EventHandler.dispatch(:action_requested, event.merge(signature: signature, slot: slot))
+      when :action_completed
+        log "=== ActionCompleted Event ==="
+        log "  request_id: #{event[:request_id]}"
+        log "  ok: #{event[:ok]}"
+        log "  result_json (raw): <#{event[:result_json].bytesize} bytes>"
+        log "  tx: #{signature}"
+        log "  slot: #{slot}"
+        log "============================="
+      end
     end
 
     def graceful_shutdown
       log "Shutting down..."
       @running = false
+    end
+
+    def already_seen_event?(signature, event)
+      request_id = event[:request_id] || "no_request_id"
+      digest = Digest::SHA256.hexdigest(event.inspect)
+      key = "#{signature}:#{event[:event_type]}:#{request_id}:#{digest}"
+      return true if @seen_event_keys[key]
+
+      @seen_event_keys[key] = true
+      @seen_event_keys.shift if @seen_event_keys.size > 5000
+      false
     end
 
     def log(message)
