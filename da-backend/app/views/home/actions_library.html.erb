@@ -1,21 +1,8 @@
 <% content_for :title, "Actions Library — Damhchuire" %>
 
-<% actions = [
-  { name: "sol.transfer",    tag: "Native",     desc: "Transfer SOL between wallets. Signed, confirmed, and acknowledged on-chain." },
-  { name: "spl.transfer",    tag: "Token",      desc: "Transfer any SPL token to a recipient address using an associated token account." },
-  { name: "sol.stake",       tag: "Staking",    desc: "Delegate SOL to a validator and earn staking rewards on your behalf." },
-  { name: "sol.unstake",     tag: "Staking",    desc: "Deactivate a stake account and begin the cooldown before withdrawal." },
-  { name: "dex.swap",        tag: "DeFi",       desc: "Swap tokens via a DEX aggregator for best-price execution across liquidity pools." },
-  { name: "defi.deposit",    tag: "DeFi",       desc: "Deposit assets into a lending or liquidity protocol and receive LP tokens." },
-  { name: "defi.withdraw",   tag: "DeFi",       desc: "Withdraw assets from a DeFi protocol back to your wallet." },
-  { name: "nft.mint",        tag: "NFT",        desc: "Mint a new NFT from a collection with on-chain metadata and royalty configuration." },
-  { name: "nft.transfer",    tag: "NFT",        desc: "Transfer ownership of an NFT to a new wallet address." },
-  { name: "gov.vote",        tag: "Governance", desc: "Cast a vote on an active DAO proposal with configurable weight and rationale." },
-  { name: "multisig.approve",tag: "Security",   desc: "Approve a pending transaction in a multisig vault. Executes when threshold is met." },
-  { name: "program.cpi",     tag: "Advanced",   desc: "Invoke any on-chain program with a fully custom instruction payload and signers." },
-] %>
+<% tags = @actions.map { |a| a[:http_method] }.uniq.sort %>
 
-<div class="page-wrap">
+<div class="page-wrap" data-controller="action-library">
 
   <div class="page-hdr">
     <p class="page-hdr-tag">02 / Actions Library</p>
@@ -30,29 +17,56 @@
 
     <div class="actions-filter">
       <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="Native">Native</button>
-      <button class="filter-btn" data-filter="Token">Token</button>
-      <button class="filter-btn" data-filter="Staking">Staking</button>
-      <button class="filter-btn" data-filter="DeFi">DeFi</button>
-      <button class="filter-btn" data-filter="NFT">NFT</button>
-      <button class="filter-btn" data-filter="Governance">Governance</button>
-      <button class="filter-btn" data-filter="Security">Security</button>
-      <button class="filter-btn" data-filter="Advanced">Advanced</button>
+      <% tags.each do |tag| %>
+        <button class="filter-btn" data-filter="<%= tag %>"><%= tag %></button>
+      <% end %>
     </div>
 
     <div class="actions-grid" id="actions-grid">
-      <% actions.each do |action| %>
-        <div class="action-card" data-tag="<%= action[:tag] %>">
+      <% @actions.each do |action| %>
+        <% logo = action[:slug].split("_").first %>
+        <div class="action-card" data-tag="<%= action[:http_method] %>"
+             data-action="click->action-library#openModal"
+             data-action-slug="<%= action[:slug] %>"
+             data-action-name="<%= action[:name] %>">
           <div class="action-card-header">
-            <span class="action-card-tag"><%= action[:tag] %></span>
+            <span class="action-card-tag"><%= action[:http_method] %></span>
             <span class="action-card-arrow">↗</span>
           </div>
+          <div class="action-card-logo"><%= action_logo_svg(logo) %></div>
           <div class="action-card-name"><%= action[:name] %></div>
-          <div class="action-card-desc"><%= action[:desc] %></div>
         </div>
       <% end %>
     </div>
 
+  </div>
+
+  <div class="modal-backdrop" data-action-library-target="backdrop"
+       data-action="click->action-library#backdropClose">
+    <div class="modal">
+      <div class="modal-hdr">
+        <span class="modal-title" data-action-library-target="title"></span>
+        <button class="modal-close" data-action="click->action-library#closeModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint">
+          This action authenticates its HTTP request using a stored credential.
+          Select which credential to inject wherever <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">{{credentials.name}}</code>
+          appears in the action's headers template.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="lib-cred-select">Credential</label>
+          <select id="lib-cred-select" class="form-select"
+                  data-action-library-target="credSelect"
+                  data-action="change->action-library#credChange"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" data-action="click->action-library#closeModal">Cancel</button>
+        <button class="modal-save" data-action-library-target="useBtn"
+                data-action="click->action-library#use" disabled>Use credential</button>
+      </div>
+    </div>
   </div>
 
 </div>
