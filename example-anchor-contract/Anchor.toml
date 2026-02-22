@@ -9,7 +9,7 @@ skip-lint = false
 action_signal_client = "EbAzCoVqhvdxhoTit1puKFHKLUQzftrLzTTgQDuspMEG"
 minimal_action_client = "EKREuFxufeoy2uyw5GKcwwMonYQipmnoVtCKcpGzr55U"
 ai_chat_client = "AiChatC1ient1111111111111111111111111111111"
-invoice_processor = "7zsEyWVFgTsg5F96ezhgDZtNsvxyBVv1CwiTq92DM34o"
+invoice_processor = "9JsLkqyRpEJxBXoGGtaRobMUyGvtxijVet7YGXCCsDD5"
 
 [registry]
 url = "https://api.apr.dev"

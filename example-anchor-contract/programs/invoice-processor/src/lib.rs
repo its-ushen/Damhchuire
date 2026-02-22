@@ -4,7 +4,7 @@ use damhchuire_sdk::{
     call_ai_chat_action_from, AiChatParams, AnchorEmitError, HasRequestCounter,
 };
 
-declare_id!("7zsEyWVFgTsg5F96ezhgDZtNsvxyBVv1CwiTq92DM34o");
+declare_id!("9JsLkqyRpEJxBXoGGtaRobMUyGvtxijVet7YGXCCsDD5");
 
 const MODEL: &str = "openai/gpt-4o-mini";
 
