@@ -155,8 +155,8 @@ export default class extends Controller {
         <div class="action-row-left">
           <span class="action-row-status ${enabled ? "action-row-status--on" : "action-row-status--off"}"></span>
           <div class="action-row-meta">
-            <span class="action-row-slug">${a.slug}</span>
-            <span class="action-row-name">${a.name || ""}</span>
+            <span class="action-row-slug">${a.name || a.slug}</span>
+            <span class="action-row-name">${a.slug}</span>
           </div>
         </div>
         <div class="action-row-right">

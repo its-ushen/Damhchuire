@@ -41,17 +41,31 @@
           <span class="code-dot code-dot-g"></span>
           <span class="code-window-title">quickstart.rs</span>
         </div>
-        <pre class="code-block"><code><span class="c-comment"># Cargo.toml</span>
-damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
+        <pre class="code-block"><code><span class="c-comment">// send a slack message</span>
+<span class="c-keyword">use</span> damhchuire_sdk::*;
 
-<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">call_weather_now_action_from</span>, <span class="c-fn">WeatherNowParams</span>};
-
-<span class="c-keyword">let</span> request_id = <span class="c-fn">call_weather_now_action_from</span>(
+<span class="c-fn">call_slack_send_message_action_from</span>(
     &<span class="c-keyword">mut</span> ctx.accounts.state,
-    <span class="c-fn">WeatherNowParams</span> { city: <span class="c-string">"Dublin"</span>.to_string(), unit: <span class="c-fn">None</span> },
+    <span class="c-fn">SlackSendMessageParams</span> {
+        webhook_url: <span class="c-string">"https://hooks.slack.com/..."</span>.to_string(),
+        text: <span class="c-string">"🔔 Vault threshold crossed!"</span>.to_string(),
+    },
 )?;
 
-<span class="c-dim">// emits ActionRequested on-chain</span></code></pre>
+<span class="c-comment">// talk to an llm</span>
+<span class="c-fn">call_openai_chat_action_from</span>(
+    &<span class="c-keyword">mut</span> ctx.accounts.state,
+    <span class="c-fn">OpenaiChatParams</span> {
+        model: <span class="c-string">"gpt-4o"</span>.to_string(),
+        prompt: <span class="c-string">"Summarise this transaction."</span>.to_string(),
+    },
+)?;
+
+<span class="c-comment">// grab weather data</span>
+<span class="c-fn">call_weather_current_action_from</span>(
+    &<span class="c-keyword">mut</span> ctx.accounts.state,
+    <span class="c-fn">WeatherCurrentParams</span> { city: <span class="c-string">"Dublin"</span>.to_string() },
+)?;</code></pre>
       </div>
     </div>
 
