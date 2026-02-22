@@ -44,15 +44,14 @@
         <pre class="code-block"><code><span class="c-comment"># Cargo.toml</span>
 damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 
-<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">OracleClient</span>, <span class="c-fn">WeatherNowParams</span>};
+<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">call_weather_now_action_from</span>, <span class="c-fn">WeatherNowParams</span>};
 
-<span class="c-keyword">let</span> client = <span class="c-fn">OracleClient</span>::default();
-<span class="c-keyword">let</span> req = client.<span class="c-fn">weather_now_on_call</span>(<span class="c-fn">WeatherNowParams</span> {
-    city: <span class="c-string">"Dublin"</span>.to_string(),
-    unit: <span class="c-fn">Some</span>(<span class="c-string">"metric"</span>.to_string()),
-})?;
+<span class="c-keyword">let</span> request_id = <span class="c-fn">call_weather_now_action_from</span>(
+    &<span class="c-keyword">mut</span> ctx.accounts.state,
+    <span class="c-fn">WeatherNowParams</span> { city: <span class="c-string">"Dublin"</span>.to_string(), unit: <span class="c-fn">None</span> },
+)?;
 
-<span class="c-dim">// emit req.action_slug + req.params_json on-chain</span></code></pre>
+<span class="c-dim">// emits ActionRequested on-chain</span></code></pre>
       </div>
     </div>
 

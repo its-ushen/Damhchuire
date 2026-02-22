@@ -1,37 +1,23 @@
-use damhchuire_sdk::{ClientError, OracleClient, PendingRequest, TypedOnCallParams};
+use damhchuire_sdk::{AnchorEmitError, CryptoPriceParams, WeatherNowParams};
 
 #[test]
-fn oracle_client_default_is_constructible() {
-    let _client = OracleClient::default();
+fn params_structs_are_constructible() {
+    let _p = CryptoPriceParams { symbol: "BTC".to_string() };
 }
 
 #[test]
-fn pending_request_payload_roundtrip() {
-    let req = PendingRequest {
-        action_slug: "example",
-        params_json: br#"{"city":"Dublin"}"#.to_vec(),
+fn weather_now_params_serialize_roundtrip() {
+    let params = WeatherNowParams {
+        city: "Dublin".to_string(),
+        unit: Some("metric".to_string()),
     };
-
-    let json: serde_json::Value = serde_json::from_slice(&req.params_json).expect("valid json payload");
-    assert_eq!(json["city"], "Dublin");
+    let json = serde_json::to_vec(&params).expect("serialize");
+    let back: WeatherNowParams = serde_json::from_slice(&json).expect("deserialize");
+    assert_eq!(back.city, "Dublin");
+    assert_eq!(back.unit.as_deref(), Some("metric"));
 }
 
 #[test]
-fn typed_on_call_params_parse_known_slug() {
-    let raw = br#"{"city":"Dublin","unit":"metric"}"#;
-    let typed = TypedOnCallParams::from_on_call("weather_now", raw).expect("typed parse");
-
-    match typed {
-        TypedOnCallParams::WeatherNow(params) => {
-            assert_eq!(params.city, "Dublin");
-            assert_eq!(params.unit.as_deref(), Some("metric"));
-        }
-        _ => panic!("unexpected typed action variant"),
-    }
-}
-
-#[test]
-fn typed_on_call_params_unknown_slug_errors() {
-    let err = TypedOnCallParams::from_on_call("does_not_exist", br#"{}"#).expect_err("should fail");
-    assert!(matches!(err, ClientError::UnknownActionSlug(_)));
+fn anchor_emit_error_variants() {
+    let _e = AnchorEmitError::CounterOverflow;
 }

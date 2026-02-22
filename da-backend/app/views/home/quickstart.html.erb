@@ -6,7 +6,7 @@
     <p class="page-hdr-tag">01 / Quickstart</p>
     <h1 class="page-hdr-title">Up and running<br>in minutes.</h1>
     <p class="page-hdr-body">
-      Add the crate, build a typed request, emit on-chain — everything you need to trigger your first oracle action.
+      Add the crate, emit on-chain, handle the response — everything you need to trigger your first oracle action.
     </p>
   </div>
 
@@ -29,19 +29,8 @@
 [dependencies]
 damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 
-<span class="c-comment"># ── 2. Build a typed request ───────────────────────────────────</span>
-<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">OracleClient</span>, <span class="c-fn">WeatherNowParams</span>};
-
-<span class="c-keyword">let</span> client = <span class="c-fn">OracleClient</span>::default();
-<span class="c-keyword">let</span> req = client.<span class="c-fn">weather_now_on_call</span>(<span class="c-fn">WeatherNowParams</span> {
-    city: <span class="c-string">"Dublin"</span>.to_string(),
-    unit: <span class="c-fn">Some</span>(<span class="c-string">"metric"</span>.to_string()),
-})?;
-<span class="c-dim">// req.action_slug == "weather_now"</span>
-<span class="c-dim">// req.params_json  == serialised bytes</span>
-
-<span class="c-comment"># ── 3. Emit on-chain (Anchor) ──────────────────────────────────</span>
-<span class="c-keyword">use</span> damhchuire_sdk::<span class="c-fn">call_weather_now_action_from</span>;
+<span class="c-comment"># ── 2. Emit on-chain ───────────────────────────────────────────</span>
+<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">call_weather_now_action_from</span>, <span class="c-fn">WeatherNowParams</span>};
 
 <span class="c-keyword">let</span> request_id = <span class="c-fn">call_weather_now_action_from</span>(
     &<span class="c-keyword">mut</span> ctx.accounts.state,
@@ -49,15 +38,11 @@ damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 )?;
 <span class="c-dim">// emits ActionRequested { request_id, action_slug, params_json }</span>
 
-<span class="c-comment"># ── 4. Handle response ─────────────────────────────────────────</span>
-<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">TypedOnCallParams</span>, <span class="c-fn">WeatherNowResponse</span>};
+<span class="c-comment"># ── 3. Handle response ─────────────────────────────────────────</span>
+<span class="c-keyword">use</span> damhchuire_sdk::<span class="c-fn">WeatherNowResponse</span>;
 
-<span class="c-keyword">match</span> <span class="c-fn">TypedOnCallParams::from_on_call</span>(slug, &bytes)? {
-    TypedOnCallParams::<span class="c-fn">WeatherNow</span>(p) => {
-        println!(<span class="c-string">"temp: {}°C"</span>, p.temp_c);
-    }
-    _ => {}
-}</code></pre>
+<span class="c-keyword">let</span> resp: <span class="c-fn">WeatherNowResponse</span> = serde_json::<span class="c-fn">from_slice</span>(&result_json)?;
+println!(<span class="c-string">"temp: {}°C"</span>, resp.temp_c);</code></pre>
     </div>
 
     <div class="qs-footer">
