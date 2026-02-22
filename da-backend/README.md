@@ -1,24 +1,63 @@
-# README
+# DA Backend (Rails Oracle Worker)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Action Library
 
-Things you may want to cover:
+The backend includes a built-in action catalog under `ActionOracle::ActionLibrary`.
+It seeds reusable off-chain web actions into the `actions` table:
 
-* Ruby version
+- `discord_send_message`
+- `slack_send_message`
+- `http_get_json`
 
-* System dependencies
+Install/update these definitions:
 
-* Configuration
+```bash
+bin/rails action_oracle:install_library
+```
 
-* Database creation
+or:
 
-* Database initialization
+```bash
+bin/rails db:seed
+```
 
-* How to run the test suite
+## Discord Sample Action
 
-* Services (job queues, cache servers, search engines, etc.)
+`discord_send_message` uses:
 
-* Deployment instructions
+- URL: `https://discord.com/api/v10/channels/{{channel_id}}/messages`
+- Header template: `Authorization: Bot {{credentials.discord_bot_token}}`
+- Body template: `{ "content": "{{content}}" }`
 
-* ...
+Store the bot token off-chain in encrypted credentials table:
+
+```bash
+bin/rails runner "Credential.find_or_initialize_by(name: 'discord_bot_token').tap { |c| c.value = ENV.fetch('DISCORD_BOT_TOKEN'); c.save! }"
+```
+
+Trigger an action request:
+
+```bash
+curl -X POST http://localhost:3000/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_slug": "discord_send_message",
+    "params_json": {
+      "channel_id": "123456789012345678",
+      "content": "hello from oracle"
+    }
+  }'
+```
+
+## Action Definition Fields
+
+`Action` supports:
+
+- `http_method`
+- `url_template`
+- `headers_template`
+- `body_template` (new)
+- `request_schema`
+- `response_schema`
+
+Template placeholders use `{{variable}}` and nested paths (for example `{{credentials.discord_bot_token}}`).

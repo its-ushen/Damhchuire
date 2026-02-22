@@ -72,8 +72,9 @@ module ActionOracle
       headers.each { |key, value| request[key.to_s] = value.to_s }
 
       if request.request_body_permitted?
+        body = rendered_body
         request["Content-Type"] ||= "application/json"
-        request.body = JSON.generate(@params)
+        request.body = JSON.generate(body)
       end
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -96,6 +97,14 @@ module ActionOracle
       template = @action.headers_template.is_a?(Hash) ? @action.headers_template : {}
       rendered = TemplateRenderer.render_json(template, template_values)
       rendered.is_a?(Hash) ? rendered : {}
+    end
+
+    def rendered_body
+      template = @action.body_template.is_a?(Hash) ? @action.body_template : {}
+      return @params if template.blank?
+
+      rendered = TemplateRenderer.render_json(template, template_values)
+      rendered.is_a?(Hash) ? rendered : @params
     end
 
     def template_values
