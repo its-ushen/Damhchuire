@@ -6,7 +6,7 @@
     <p class="page-hdr-tag">01 / Quickstart</p>
     <h1 class="page-hdr-title">Up and running<br>in minutes.</h1>
     <p class="page-hdr-body">
-      Install, init, emit, listen — everything you need to send your first on-chain action.
+      Add the crate, build a typed request, emit on-chain — everything you need to trigger your first oracle action.
     </p>
   </div>
 
@@ -16,7 +16,7 @@
         <span class="code-dot code-dot-r"></span>
         <span class="code-dot code-dot-y"></span>
         <span class="code-dot code-dot-g"></span>
-        <span class="code-window-title">quickstart.js</span>
+        <span class="code-window-title">quickstart.rs</span>
         <button
           class="code-copy-btn"
           data-copy-code-target="btn"
@@ -24,36 +24,40 @@
         >Copy</button>
       </div>
 
-      <pre class="code-block qs-code-block" data-copy-code-target="code"><code><span class="c-comment"># ── 1. Install ─────────────────────────────────────────────────</span>
-npm install @damhchuire/sdk
+      <pre class="code-block qs-code-block" data-copy-code-target="code"><code><span class="c-comment"># ── 1. Add dependency ──────────────────────────────────────────</span>
+<span class="c-comment"># Cargo.toml</span>
+[dependencies]
+damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 
-<span class="c-comment"># ── 2. Initialize ──────────────────────────────────────────────</span>
-<span class="c-keyword">import</span> { <span class="c-fn">Damhchuire</span> } <span class="c-keyword">from</span> <span class="c-string">'@damhchuire/sdk'</span>
-<span class="c-keyword">import</span> { <span class="c-fn">Keypair</span> }     <span class="c-keyword">from</span> <span class="c-string">'@solana/web3.js'</span>
+<span class="c-comment"># ── 2. Build a typed request ───────────────────────────────────</span>
+<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">OracleClient</span>, <span class="c-fn">WeatherNowParams</span>};
 
-<span class="c-keyword">const</span> keypair = <span class="c-fn">Keypair</span>.fromSecretKey(
-  Buffer.<span class="c-fn">from</span>(process.env.SOLANA_PRIVATE_KEY, <span class="c-string">'base64'</span>)
-)
+<span class="c-keyword">let</span> client = <span class="c-fn">OracleClient</span>::default();
+<span class="c-keyword">let</span> req = client.<span class="c-fn">weather_now_on_call</span>(<span class="c-fn">WeatherNowParams</span> {
+    city: <span class="c-string">"Dublin"</span>.to_string(),
+    unit: <span class="c-fn">Some</span>(<span class="c-string">"metric"</span>.to_string()),
+})?;
+<span class="c-dim">// req.action_slug == "weather_now"</span>
+<span class="c-dim">// req.params_json  == serialised bytes</span>
 
-<span class="c-keyword">const</span> client = <span class="c-keyword">await</span> <span class="c-fn">Damhchuire</span>.init({
-  keypair,
-  network: <span class="c-string">'mainnet-beta'</span>,
-})
+<span class="c-comment"># ── 3. Emit on-chain (Anchor) ──────────────────────────────────</span>
+<span class="c-keyword">use</span> damhchuire_sdk::<span class="c-fn">call_weather_now_action_from</span>;
 
-<span class="c-comment"># ── 3. Emit ────────────────────────────────────────────────────</span>
-<span class="c-keyword">const</span> tx = <span class="c-keyword">await</span> client.<span class="c-fn">emit</span>(<span class="c-string">'sol.transfer'</span>, {
-  to:     <span class="c-string">'9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'</span>,
-  amount: <span class="c-num">1_000_000</span>,  <span class="c-dim">// lamports — 0.001 SOL</span>
-})
+<span class="c-keyword">let</span> request_id = <span class="c-fn">call_weather_now_action_from</span>(
+    &<span class="c-keyword">mut</span> ctx.accounts.state,
+    <span class="c-fn">WeatherNowParams</span> { city: <span class="c-string">"Dublin"</span>.to_string(), unit: <span class="c-fn">None</span> },
+)?;
+<span class="c-dim">// emits ActionRequested { request_id, action_slug, params_json }</span>
 
-console.<span class="c-fn">log</span>(tx.signature)  <span class="c-dim">// 5Ht8yR...</span>
+<span class="c-comment"># ── 4. Handle response ─────────────────────────────────────────</span>
+<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">TypedOnCallParams</span>, <span class="c-fn">WeatherNowResponse</span>};
 
-<span class="c-comment"># ── 4. Listen ──────────────────────────────────────────────────</span>
-client.<span class="c-fn">on</span>(<span class="c-string">'ack'</span>, ({ taskId, data }) => {
-  console.<span class="c-fn">log</span>(<span class="c-string">`ack: task <span class="c-num">${taskId}</span>`</span>, data)
-})
-
-<span class="c-keyword">await</span> client.<span class="c-fn">listen</span>()  <span class="c-dim">// reconnects automatically</span></code></pre>
+<span class="c-keyword">match</span> <span class="c-fn">TypedOnCallParams::from_on_call</span>(slug, &bytes)? {
+    TypedOnCallParams::<span class="c-fn">WeatherNow</span>(p) => {
+        println!(<span class="c-string">"temp: {}°C"</span>, p.temp_c);
+    }
+    _ => {}
+}</code></pre>
     </div>
 
     <div class="qs-footer">
