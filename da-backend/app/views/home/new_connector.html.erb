@@ -124,6 +124,19 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label" for="conn-api-key">API key <span style="color:var(--text-subtle);font-weight:400;">(optional)</span></label>
+            <input
+              id="conn-api-key"
+              type="password"
+              class="form-input"
+              placeholder="sk-..."
+              data-connector-preview-target="apiKey"
+              data-action="input->connector-preview#update"
+            >
+            <span class="form-hint">Stored encrypted. Injected as <code style="font-family:var(--font-mono);font-size:0.85em;">{{ credential.&lt;slug&gt;_api_key }}</code> in headers.</span>
+          </div>
+
+          <div class="form-group">
             <label class="form-label" for="conn-payload">Payload template <span style="color:var(--text-subtle);font-weight:400;">(optional)</span></label>
             <textarea
               id="conn-payload"

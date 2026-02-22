@@ -63,7 +63,7 @@ module ActionOracle
       request_klass = REQUEST_CLASS[method]
       raise ArgumentError, "unsupported HTTP method: #{method}" unless request_klass
 
-      url = TemplateRenderer.render_string(@action.url_template, @params)
+      url = TemplateRenderer.render_string(@action.url_template, template_values)
       uri = URI.parse(url)
       validate_target!(uri)
 
@@ -94,8 +94,18 @@ module ActionOracle
 
     def rendered_headers
       template = @action.headers_template.is_a?(Hash) ? @action.headers_template : {}
-      rendered = TemplateRenderer.render_json(template, @params)
+      rendered = TemplateRenderer.render_json(template, template_values)
       rendered.is_a?(Hash) ? rendered : {}
+    end
+
+    def template_values
+      @template_values ||= begin
+        values = @params.dup
+        values.delete("credential")
+        values.delete(:credential)
+        values["credential"] = Credential.values_hash
+        values
+      end
     end
 
     def normalize_headers(raw_headers)

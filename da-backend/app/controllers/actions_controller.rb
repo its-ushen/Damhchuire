@@ -13,18 +13,28 @@ class ActionsController < ApplicationController
   def create
     action = Action.new(action_params)
 
-    if action.save
-      render json: serialize_action(action), status: :created
-    else
-      render json: { errors: action.errors.full_messages }, status: :unprocessable_entity
+    Action.transaction do
+      store_credential!(action.slug) if raw_api_key.present?
+
+      if action.save
+        render json: serialize_action(action), status: :created
+      else
+        render json: { errors: action.errors.full_messages }, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
+      end
     end
   end
 
   def update
-    if @action.update(action_params)
-      render json: serialize_action(@action)
-    else
-      render json: { errors: @action.errors.full_messages }, status: :unprocessable_entity
+    Action.transaction do
+      store_credential!(@action.slug) if raw_api_key.present?
+
+      if @action.update(action_params)
+        render json: serialize_action(@action)
+      else
+        render json: { errors: @action.errors.full_messages }, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
+      end
     end
   end
 
@@ -47,9 +57,7 @@ class ActionsController < ApplicationController
   end
 
   def action_params
-    raw = params[:action].presence || params
-    raw_hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
-    ActionController::Parameters.new(raw_hash).permit(
+    params.permit(
       :slug,
       :name,
       :description,
@@ -62,8 +70,19 @@ class ActionsController < ApplicationController
     )
   end
 
+  def raw_api_key
+    params[:api_key].presence
+  end
+
+  def store_credential!(slug)
+    cred_name = "#{slug}_api_key"
+    cred = Credential.find_or_initialize_by(name: cred_name)
+    cred.value = raw_api_key
+    cred.save!
+  end
+
   def serialize_action(action)
-    action.as_json(
+    data = action.as_json(
       only: [
         :id,
         :slug,
@@ -79,5 +98,8 @@ class ActionsController < ApplicationController
         :updated_at
       ]
     )
+    cred = Credential.find_by(name: "#{action.slug}_api_key")
+    data["has_api_key"] = cred.present?
+    data
   end
 end
