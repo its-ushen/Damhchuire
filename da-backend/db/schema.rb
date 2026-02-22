@@ -42,6 +42,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_200000) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.text "url_template", null: false
+    t.json "body_template", default: {}, null: false
     t.index ["slug"], name: "index_actions_on_slug", unique: true
   end
 
