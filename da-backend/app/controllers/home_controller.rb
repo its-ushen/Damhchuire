@@ -2,5 +2,7 @@ class HomeController < ApplicationController
   def index; end
   def quickstart; end
   def actions; end
-  def new_connector; end
+  def actions_library; end
+  def manage_actions; end
+  def credentials; end
 end

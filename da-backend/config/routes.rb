@@ -5,8 +5,10 @@ Rails.application.routes.draw do
 
   root to: "home#index"
   get "/quickstart", to: "home#quickstart", as: :quickstart
+  get "/actions/library", to: "home#actions_library", as: :actions_library, constraints: ->(request) { request.format.html? }
+  get "/actions/manage", to: "home#manage_actions", as: :manage_actions, constraints: ->(request) { request.format.html? }
   get "/actions", to: "home#actions", as: :actions, constraints: ->(request) { request.format.html? }
-  get "/connectors/new", to: "home#new_connector", as: :new_connector
+  get "/credentials", to: "home#credentials", as: :credentials_page, constraints: ->(request) { request.format.html? }
 
   resources :actions, as: :api_actions, only: %i[index show create update], defaults: { format: :json } do
     member do
