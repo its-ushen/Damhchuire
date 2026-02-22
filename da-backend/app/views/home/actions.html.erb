@@ -1,22 +1,65 @@
 <% content_for :title, "Actions — Damhchuire" %>
 
-<div class="page-wrap"
-     data-controller="action-form">
+<% tags = @actions.map { |a| a[:http_method] }.uniq.sort %>
 
-  <div class="page-hdr">
-    <p class="page-hdr-tag">03 / Actions</p>
-    <h1 class="page-hdr-title">Create an action.</h1>
-    <p class="page-hdr-body">
-      An action is a typed HTTP call — define its endpoint, schema, and credentials,
-      then emit it with a single <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">client.emit()</code> call.
-    </p>
+<div class="page-wrap" data-controller="action-library">
+
+  <%# ── Top: start from scratch ── %>
+  <div class="actions-scratch">
+    <div class="actions-scratch-copy">
+      <p class="page-hdr-tag">03 / Actions</p>
+      <h1 class="actions-scratch-title">Add an action.</h1>
+      <p class="actions-scratch-body">
+        Wire up any API — define a URL template, attach a credential,
+        and emit it on-chain. Or pick one from the library below.
+      </p>
+    </div>
+    <button class="btn-primary actions-scratch-btn" id="scratch-btn">
+      Start from scratch <span>→</span>
+    </button>
   </div>
 
-  <div class="connector-body">
-    <div class="connector-split">
+  <%# ── Divider ── %>
+  <div class="actions-library-hdr">
+    <span class="actions-library-hdr-label">Or choose from the library</span>
+    <div class="actions-filter">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <% tags.each do |tag| %>
+        <button class="filter-btn" data-filter="<%= tag %>"><%= tag %></button>
+      <% end %>
+    </div>
+  </div>
 
-      <%# ── Form ── %>
-      <div class="connector-form-col">
+  <%# ── Library grid ── %>
+  <div class="actions-grid-footer">
+  <div class="actions-grid" id="actions-grid">
+    <% @actions.each do |action| %>
+      <% logo = action[:slug].split("_").first %>
+      <div class="action-card" data-tag="<%= action[:http_method] %>"
+           data-action="click->action-library#openModal"
+           data-action-slug="<%= action[:slug] %>"
+           data-action-name="<%= action[:name] %>"
+           data-action-payload="<%= h action.to_json %>">
+        <div class="action-card-header">
+          <span class="action-card-tag"><%= action[:http_method] %></span>
+          <span class="action-card-arrow">↗</span>
+        </div>
+        <div class="action-card-logo"><%= action_logo_svg(logo) %></div>
+        <div class="action-card-name"><%= action[:name] %></div>
+      </div>
+    <% end %>
+  </div>
+
+  </div>
+
+  <%# ── Scratch modal ── %>
+  <div class="modal-backdrop" id="scratch-modal">
+    <div class="modal modal--wide" data-controller="action-form">
+      <div class="modal-hdr">
+        <span class="modal-title">New action</span>
+        <button class="modal-close" id="scratch-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
 
         <div class="form-section">
           <span class="form-section-title">Identity</span>
@@ -27,7 +70,7 @@
               id="action-slug"
               type="text"
               class="form-input"
-              placeholder="e.g. sol.transfer"
+              placeholder="e.g. slack.post_message"
               data-action-form-target="slug"
               data-action="input->action-form#update"
             >
@@ -40,7 +83,7 @@
               id="action-name"
               type="text"
               class="form-input"
-              placeholder="e.g. SOL Transfer"
+              placeholder="e.g. Post Slack Message"
               data-action-form-target="name"
               data-action="input->action-form#update"
             >
@@ -108,29 +151,71 @@
           </div>
         </div>
 
-        <button class="connector-submit" type="button"
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="scratch-modal-cancel">Cancel</button>
+        <button class="modal-save"
           data-action-form-target="submit"
           data-action="click->action-form#submit">
           Create action <span>→</span>
         </button>
-
       </div>
+    </div>
+  </div>
 
-      <%# ── Live preview ── %>
-      <div class="connector-preview-col">
-        <p class="preview-label">Live preview</p>
-        <div class="preview-window" data-action-form-target="previewWindow">
-          <div class="code-window-bar">
-            <span class="code-dot code-dot-r"></span>
-            <span class="code-dot code-dot-y"></span>
-            <span class="code-dot code-dot-g"></span>
-            <span class="code-window-title">action.json</span>
-          </div>
-          <pre class="preview-code" data-action-form-target="preview"></pre>
+  <%# ── Library modal ── %>
+  <div class="modal-backdrop" data-action-library-target="backdrop"
+       data-action="click->action-library#backdropClose">
+    <div class="modal">
+      <div class="modal-hdr">
+        <span class="modal-title" data-action-library-target="title"></span>
+        <button class="modal-close" data-action="click->action-library#closeModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint">
+          This action authenticates its HTTP request using a stored credential.
+          Select which credential to inject wherever <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">{{credentials.name}}</code>
+          appears in the action's headers template.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="lib-cred-select">Credential</label>
+          <select id="lib-cred-select" class="form-select"
+                  data-action-library-target="credSelect"
+                  data-action="change->action-library#credChange"></select>
         </div>
       </div>
-
+      <div class="modal-footer">
+        <button class="modal-cancel" data-action="click->action-library#closeModal">Cancel</button>
+        <button class="modal-save" data-action-library-target="useBtn"
+                data-action="click->action-library#use" disabled>Use credential</button>
+      </div>
     </div>
   </div>
 
 </div>
+
+<script type="module">
+  const scratchModal  = document.getElementById('scratch-modal')
+  const openScratch   = () => scratchModal.classList.add('modal-backdrop--open')
+  const closeScratch  = () => scratchModal.classList.remove('modal-backdrop--open')
+
+  document.getElementById('scratch-btn').addEventListener('click', openScratch)
+  document.getElementById('scratch-modal-close').addEventListener('click', closeScratch)
+  document.getElementById('scratch-modal-cancel').addEventListener('click', closeScratch)
+  scratchModal.addEventListener('click', e => { if (e.target === scratchModal) closeScratch() })
+
+  const buttons = document.querySelectorAll('.filter-btn')
+  const cards   = document.querySelectorAll('.action-card')
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      const filter = btn.dataset.filter
+      cards.forEach(card => {
+        const show = filter === 'all' || card.dataset.tag === filter
+        card.style.display = show ? '' : 'none'
+      })
+    })
+  })
+</script>
