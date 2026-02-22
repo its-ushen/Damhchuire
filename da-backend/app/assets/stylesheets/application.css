@@ -741,6 +741,23 @@ a {
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.04) inset,
     0 16px 32px rgba(0,0,0,0.14);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.preview-window--ok {
+  border-color: rgba(143, 212, 164, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 0 24px rgba(143, 212, 164, 0.18),
+    0 16px 32px rgba(0,0,0,0.14);
+}
+
+.preview-window--error {
+  border-color: rgba(255, 138, 128, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 0 24px rgba(255, 138, 128, 0.18),
+    0 16px 32px rgba(0,0,0,0.14);
 }
 
 .preview-window .code-window-bar {
@@ -756,6 +773,98 @@ a {
   white-space: pre;
   overflow-x: auto;
   min-height: 220px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Credential validation hints (action form)
+   ───────────────────────────────────────────────────────── */
+.cred-hint-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  min-height: 0;
+}
+
+.cred-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+}
+
+.cred-hint--missing {
+  color: #FF8A80;
+  background: rgba(255, 138, 128, 0.08);
+  border: 1px solid rgba(255, 138, 128, 0.22);
+}
+
+/* Link inside form-hint */
+.form-hint-link {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.12s ease;
+}
+
+.form-hint-link:hover {
+  color: var(--text);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Credentials list (credentials page)
+   ───────────────────────────────────────────────────────── */
+.cred-list {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cred-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+
+.cred-row:last-child {
+  border-bottom: none;
+}
+
+.cred-row-name {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.cred-row-delete {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.cred-row-delete:hover {
+  color: #FF8A80;
+  border-color: rgba(255, 138, 128, 0.4);
+}
+
+.cred-empty {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+  padding: 1.5rem 1.25rem;
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────

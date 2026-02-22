@@ -1,76 +1,136 @@
 <% content_for :title, "Actions — Damhchuire" %>
 
-<% actions = [
-  { name: "sol.transfer",    tag: "Native",     desc: "Transfer SOL between wallets. Signed, confirmed, and acknowledged on-chain." },
-  { name: "spl.transfer",    tag: "Token",      desc: "Transfer any SPL token to a recipient address using an associated token account." },
-  { name: "sol.stake",       tag: "Staking",    desc: "Delegate SOL to a validator and earn staking rewards on your behalf." },
-  { name: "sol.unstake",     tag: "Staking",    desc: "Deactivate a stake account and begin the cooldown before withdrawal." },
-  { name: "dex.swap",        tag: "DeFi",       desc: "Swap tokens via a DEX aggregator for best-price execution across liquidity pools." },
-  { name: "defi.deposit",    tag: "DeFi",       desc: "Deposit assets into a lending or liquidity protocol and receive LP tokens." },
-  { name: "defi.withdraw",   tag: "DeFi",       desc: "Withdraw assets from a DeFi protocol back to your wallet." },
-  { name: "nft.mint",        tag: "NFT",        desc: "Mint a new NFT from a collection with on-chain metadata and royalty configuration." },
-  { name: "nft.transfer",    tag: "NFT",        desc: "Transfer ownership of an NFT to a new wallet address." },
-  { name: "gov.vote",        tag: "Governance", desc: "Cast a vote on an active DAO proposal with configurable weight and rationale." },
-  { name: "multisig.approve",tag: "Security",   desc: "Approve a pending transaction in a multisig vault. Executes when threshold is met." },
-  { name: "program.cpi",     tag: "Advanced",   desc: "Invoke any on-chain program with a fully custom instruction payload and signers." },
-] %>
-
-<div class="page-wrap">
+<div class="page-wrap"
+     data-controller="action-form">
 
   <div class="page-hdr">
-    <p class="page-hdr-tag">02 / Actions</p>
-    <h1 class="page-hdr-title">Library of actions.</h1>
+    <p class="page-hdr-tag">03 / Actions</p>
+    <h1 class="page-hdr-title">Create an action.</h1>
     <p class="page-hdr-body">
-      Every action is a first-class primitive — typed, versioned, and acknowledgment-capable.
-      Emit them with a single <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">client.emit()</code> call.
+      An action is a typed HTTP call — define its endpoint, schema, and credentials,
+      then emit it with a single <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-subtle);padding:0.1em 0.4em;border-radius:3px;">client.emit()</code> call.
     </p>
   </div>
 
-  <div class="actions-body">
+  <div class="connector-body">
+    <div class="connector-split">
 
-    <div class="actions-filter">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="Native">Native</button>
-      <button class="filter-btn" data-filter="Token">Token</button>
-      <button class="filter-btn" data-filter="Staking">Staking</button>
-      <button class="filter-btn" data-filter="DeFi">DeFi</button>
-      <button class="filter-btn" data-filter="NFT">NFT</button>
-      <button class="filter-btn" data-filter="Governance">Governance</button>
-      <button class="filter-btn" data-filter="Security">Security</button>
-      <button class="filter-btn" data-filter="Advanced">Advanced</button>
-    </div>
+      <%# ── Form ── %>
+      <div class="connector-form-col">
 
-    <div class="actions-grid" id="actions-grid">
-      <% actions.each do |action| %>
-        <div class="action-card" data-tag="<%= action[:tag] %>">
-          <div class="action-card-header">
-            <span class="action-card-tag"><%= action[:tag] %></span>
-            <span class="action-card-arrow">↗</span>
+        <div class="form-section">
+          <span class="form-section-title">Identity</span>
+
+          <div class="form-group">
+            <label class="form-label" for="action-slug">Slug</label>
+            <input
+              id="action-slug"
+              type="text"
+              class="form-input"
+              placeholder="e.g. sol.transfer"
+              data-action-form-target="slug"
+              data-action="input->action-form#update"
+            >
+            <span class="form-hint">Lowercase, dots and hyphens allowed. Used as the action's unique identifier.</span>
           </div>
-          <div class="action-card-name"><%= action[:name] %></div>
-          <div class="action-card-desc"><%= action[:desc] %></div>
-        </div>
-      <% end %>
-    </div>
 
+          <div class="form-group">
+            <label class="form-label" for="action-name">Name</label>
+            <input
+              id="action-name"
+              type="text"
+              class="form-input"
+              placeholder="e.g. SOL Transfer"
+              data-action-form-target="name"
+              data-action="input->action-form#update"
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="action-description">Description <span style="color:var(--text-subtle);font-weight:400;">(optional)</span></label>
+            <input
+              id="action-description"
+              type="text"
+              class="form-input"
+              placeholder="What does this action do?"
+              data-action-form-target="description"
+              data-action="input->action-form#update"
+            >
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-title">Request</span>
+
+          <div class="form-group">
+            <label class="form-label" for="action-method">HTTP method</label>
+            <select
+              id="action-method"
+              class="form-select"
+              data-action-form-target="httpMethod"
+              data-action="change->action-form#update"
+            >
+              <option value="GET">GET</option>
+              <option value="POST" selected>POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="action-url">URL template</label>
+            <input
+              id="action-url"
+              type="text"
+              class="form-input"
+              placeholder="https://api.example.com/{{endpoint}}"
+              data-action-form-target="urlTemplate"
+              data-action="input->action-form#update"
+            >
+            <span class="form-hint">Use <code style="font-family:var(--font-mono);font-size:0.85em;">{{variable}}</code> for dynamic values injected at runtime.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="action-headers">Headers template <span style="color:var(--text-subtle);font-weight:400;">(optional)</span></label>
+            <textarea
+              id="action-headers"
+              class="form-textarea"
+              placeholder='{ "Authorization": "Bearer {{credential.my_api_key}}" }'
+              data-action-form-target="headersTemplate"
+              data-action="input->action-form#update"
+            ></textarea>
+            <span class="form-hint">
+              JSON object. Use <code style="font-family:var(--font-mono);font-size:0.85em;">{{credential.&lt;name&gt;}}</code> to inject stored credentials.
+              <a href="<%= credentials_page_path %>" class="form-hint-link">Manage credentials →</a>
+            </span>
+            <div class="cred-hint-list" data-action-form-target="credentialHints"></div>
+          </div>
+        </div>
+
+        <button class="connector-submit" type="button"
+          data-action-form-target="submit"
+          data-action="click->action-form#submit">
+          Create action <span>→</span>
+        </button>
+
+      </div>
+
+      <%# ── Live preview ── %>
+      <div class="connector-preview-col">
+        <p class="preview-label">Live preview</p>
+        <div class="preview-window" data-action-form-target="previewWindow">
+          <div class="code-window-bar">
+            <span class="code-dot code-dot-r"></span>
+            <span class="code-dot code-dot-y"></span>
+            <span class="code-dot code-dot-g"></span>
+            <span class="code-window-title">action.json</span>
+          </div>
+          <pre class="preview-code" data-action-form-target="preview"></pre>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div>
-
-<script type="module">
-  const buttons = document.querySelectorAll('.filter-btn')
-  const cards   = document.querySelectorAll('.action-card')
-
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      buttons.forEach(b => b.classList.remove('active'))
-      btn.classList.add('active')
-
-      const filter = btn.dataset.filter
-      cards.forEach(card => {
-        const show = filter === 'all' || card.dataset.tag === filter
-        card.style.display = show ? '' : 'none'
-      })
-    })
-  })
-</script>
