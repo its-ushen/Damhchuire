@@ -32,6 +32,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-chat-client"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "damhchuire-sdk",
+ "serde_json",
+]
+
+[[package]]
 name = "anchor-attribute-access-control"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -575,6 +584,16 @@ checksum = "7714e70437a7dc3ac8eb7e6f8df75fd8eb422675fc7678aff7364301092b1017"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.1",
+]
+
+[[package]]
+name = "invoice-processor"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "damhchuire-sdk",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

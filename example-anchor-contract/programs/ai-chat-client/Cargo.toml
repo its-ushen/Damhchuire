@@ -1,0 +1,28 @@
+[package]
+name = "ai-chat-client"
+version = "0.1.0"
+description = "Anchor contract that calls OpenRouter AI chat via Damhchuire oracle"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "ai_chat_client"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "damhchuire-sdk/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = "0.32.1"
+damhchuire-sdk = { path = "../../../da-sdk/rust", features = ["anchor"] }
+serde_json = "1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

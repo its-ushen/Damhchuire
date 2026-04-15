@@ -6,8 +6,6 @@ require "uri"
 require "ed25519"
 
 class DaTaskEmitter
-  PROGRAM_ID = "91XcSJyrQZpmJifL9TggBXHrXELtNrP3xSZ217DVGjWs"
-
   DEFAULT_BLOCKHASH_COMMITMENT = "confirmed"
   DEFAULT_PREFLIGHT_COMMITMENT = "confirmed"
   DEFAULT_MAX_SEND_ATTEMPTS = 4
@@ -23,6 +21,7 @@ class DaTaskEmitter
   D = 37095705934669439343138083508754565189542113879843219016388785533085940283555
 
   def initialize
+    @program_id = Solana::PROGRAM_ID
     @rpc_url = ENV.fetch("SOLANA_RPC_URL", "http://127.0.0.1:8899")
     @keypair_path = ENV.fetch("SOLANA_KEYPAIR_PATH", File.expand_path("~/.config/solana/id.json"))
     @blockhash_commitment = ENV.fetch("SOLANA_BLOCKHASH_COMMITMENT", DEFAULT_BLOCKHASH_COMMITMENT)
@@ -37,21 +36,15 @@ class DaTaskEmitter
     @public_key_bytes = @signing_key.verify_key.to_bytes.bytes
   end
 
-  def on_call(action_slug:, params_json:)
-    payload = params_json.is_a?(String) ? params_json : JSON.generate(params_json)
-
-    send_with_retry do
-      instruction_data = build_on_call_instruction_data(action_slug.to_s, payload.bytes)
-      send_instruction(instruction_data: instruction_data, config_writable: true)
-    end
-  end
-
   def callback(request_id:, ok:, result_json:)
     payload = result_json.is_a?(String) ? result_json : JSON.generate(result_json)
 
     send_with_retry do
       instruction_data = build_callback_instruction_data(request_id.to_i, !!ok, payload.bytes)
-      send_instruction(instruction_data: instruction_data, config_writable: false)
+      send_callback_instruction(
+        instruction_data: instruction_data,
+        request_id: request_id.to_i
+      )
     end
   end
 
@@ -77,16 +70,68 @@ class DaTaskEmitter
     RETRYABLE_RPC_MARKERS.any? { |marker| message.include?(marker) }
   end
 
-  def send_instruction(instruction_data:, config_writable:)
+  # Build and send a callback transaction matching the invoice_processor's CallbackCtx:
+  #   [0] config    – PDA seeds ["config"], readonly
+  #   [1] oracle_authority – signer / fee payer / writable
+  #   [2] invoice   – PDA seeds ["invoice", request_id_le_bytes], writable
+  #   [3] program_id
+  def send_callback_instruction(instruction_data:, request_id:)
+    program_id_bytes = base58_decode(@program_id)
     blockhash = fetch_blockhash
-    config_pda = derive_config_pda
-    message = build_message(blockhash, config_pda, instruction_data, config_writable: config_writable)
+    config_pda = derive_pda(["config".bytes], program_id_bytes)
+    invoice_pda = derive_pda(["invoice".bytes, [request_id].pack("Q<").bytes], program_id_bytes)
+
+    message = build_callback_message(
+      blockhash: blockhash,
+      config_pda: config_pda,
+      invoice_pda: invoice_pda,
+      instruction_data: instruction_data,
+      program_id_bytes: program_id_bytes
+    )
 
     signature = @signing_key.sign(message.pack("C*"))
     tx_bytes = encode_transaction(signature.bytes, message)
     tx_b64 = Base64.strict_encode64(tx_bytes.pack("C*"))
 
     send_transaction(tx_b64)
+  end
+
+  # Solana transaction message for callback.
+  #
+  # Account meta ordering (sorted by signer/writable as Solana requires):
+  #   [0] oracle_authority – signer + writable (fee payer)
+  #   [1] invoice          – writable (not signer)
+  #   [2] config           – readonly (not signer, not writable)
+  #   [3] program_id       – readonly (not signer, not writable, executable)
+  #
+  # Header: [num_required_signatures, num_readonly_signed, num_readonly_unsigned]
+  #   1 signer (oracle_authority)
+  #   0 readonly signed
+  #   2 readonly unsigned (config + program_id)
+  #
+  # Instruction account indices map to Anchor struct order (CallbackCtx):
+  #   config=2, oracle_authority=0, invoice=1
+  def build_callback_message(blockhash:, config_pda:, invoice_pda:, instruction_data:, program_id_bytes:)
+    authority_bytes = @public_key_bytes
+    blockhash_bytes = base58_decode(blockhash)
+
+    # Header: 1 signer, 0 readonly-signed, 2 readonly-unsigned (config + program)
+    header = [1, 0, 2]
+
+    # Accounts in Solana wire order: signers+writable first, then writable, then readonly
+    accounts = authority_bytes + invoice_pda + config_pda + program_id_bytes
+
+    # Instruction: program is at index 3, accounts in Anchor struct order
+    instruction =
+      [3] +                                         # program_id index
+      compact_u16(3) + [2, 0, 1] +                  # 3 accounts: config=2, oracle_authority=0, invoice=1
+      compact_u16(instruction_data.length) +
+      instruction_data
+
+    header +
+      compact_u16(4) + accounts +
+      blockhash_bytes +
+      compact_u16(1) + instruction
   end
 
   def fetch_blockhash
@@ -136,18 +181,16 @@ class DaTaskEmitter
     bytes
   end
 
-  # Iterate bump 255->0, return first SHA256 hash that is NOT on the ed25519 curve.
-  def derive_config_pda
-    program_id_bytes = base58_decode(PROGRAM_ID)
-    seed = "config".bytes
-
+  # Derive a PDA given an array of seed byte-arrays and the program_id bytes.
+  # Iterates bump 255->0, returns first SHA256 hash NOT on the ed25519 curve.
+  def derive_pda(seeds, program_id_bytes)
     255.downto(0) do |bump|
-      hash_input = seed + [ bump ] + program_id_bytes + "ProgramDerivedAddress".bytes
+      hash_input = seeds.flatten + [bump] + program_id_bytes + "ProgramDerivedAddress".bytes
       hash = Digest::SHA256.digest(hash_input.pack("C*")).bytes
       return hash unless on_ed25519_curve?(hash)
     end
 
-    raise "Could not find a valid config PDA"
+    raise "Could not find a valid PDA"
   end
 
   # Returns true if the 32-byte array represents a point on the ed25519 curve.
@@ -180,67 +223,25 @@ class DaTaskEmitter
     true
   end
 
-  # Anchor discriminator: SHA256("global:on_call")[0..8)
-  # + Borsh String(action_slug) + Borsh Vec<u8>(params_json)
-  def build_on_call_instruction_data(action_slug, params_bytes)
-    discriminator = Digest::SHA256.digest("global:on_call").bytes.first(8)
-
-    slug_bytes = action_slug.encode("UTF-8").bytes
-    slug_len = [ slug_bytes.length ].pack("V").bytes
-
-    params_len = [ params_bytes.length ].pack("V").bytes
-
-    discriminator + slug_len + slug_bytes + params_len + params_bytes
-  end
-
   # Anchor discriminator: SHA256("global:callback")[0..8)
   # + u64 request_id + bool ok + Borsh Vec<u8>(result_json)
   def build_callback_instruction_data(request_id, ok, result_bytes)
     discriminator = Digest::SHA256.digest("global:callback").bytes.first(8)
-    request_id_bytes = [ request_id ].pack("Q<").bytes
-    ok_byte = [ ok ? 1 : 0 ]
-    result_len = [ result_bytes.length ].pack("V").bytes
+    request_id_bytes = [request_id].pack("Q<").bytes
+    ok_byte = [ok ? 1 : 0]
+    result_len = [result_bytes.length].pack("V").bytes
 
     discriminator + request_id_bytes + ok_byte + result_len + result_bytes
-  end
-
-  # Solana transaction message
-  #
-  # Account order:
-  # [0] authority (fee payer / signer / writable)
-  # [1] config_pda (writable for on_call, readonly for callback)
-  # [2] program_id (readonly)
-  #
-  # Instruction account indices: [1, 0] (config first, authority second)
-  def build_message(blockhash, config_pda, instruction_data, config_writable:)
-    authority_bytes = @public_key_bytes
-    program_id_bytes = base58_decode(PROGRAM_ID)
-    blockhash_bytes = base58_decode(blockhash)
-
-    num_readonly_unsigned = config_writable ? 1 : 2
-    header = [ 1, 0, num_readonly_unsigned ]
-    accounts = authority_bytes + config_pda + program_id_bytes
-
-    instruction =
-      [2] +
-      compact_u16(2) + [1, 0] +
-      compact_u16(instruction_data.length) +
-      instruction_data
-
-    header +
-      compact_u16(3) + accounts +
-      blockhash_bytes +
-      compact_u16(1) + instruction
   end
 
   # Solana compact-u16 encoding
   def compact_u16(n)
     if n <= 0x7f
-      [ n ]
+      [n]
     elsif n <= 0x3fff
-      [ (n & 0x7f) | 0x80, n >> 7 ]
+      [(n & 0x7f) | 0x80, n >> 7]
     else
-      [ (n & 0x7f) | 0x80, ((n >> 7) & 0x7f) | 0x80, n >> 14 ]
+      [(n & 0x7f) | 0x80, ((n >> 7) & 0x7f) | 0x80, n >> 14]
     end
   end
 
