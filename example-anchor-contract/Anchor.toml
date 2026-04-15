@@ -8,6 +8,7 @@ skip-lint = false
 [programs.localnet]
 action_signal_client = "EbAzCoVqhvdxhoTit1puKFHKLUQzftrLzTTgQDuspMEG"
 minimal_action_client = "EKREuFxufeoy2uyw5GKcwwMonYQipmnoVtCKcpGzr55U"
+invoice_processor = "9JsLkqyRpEJxBXoGGtaRobMUyGvtxijVet7YGXCCsDD5"
 
 [registry]
 url = "https://api.apr.dev"
@@ -15,3 +16,6 @@ url = "https://api.apr.dev"
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
+
+[scripts]
+e2e-invoice = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/e2e-invoice-processor.ts\""

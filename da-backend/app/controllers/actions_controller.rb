@@ -57,8 +57,7 @@ class ActionsController < ApplicationController
   end
 
   def action_params
-    raw = params[:action].presence || params
-    raw_hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw.to_h
+    raw_hash = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
 
     raw_hash.with_indifferent_access.slice(
       :slug,
