@@ -38,7 +38,7 @@ class ActionOracle::RestExecutorTest < ActiveSupport::TestCase
       http_method: "POST",
       url_template: "https://discord.com/api/v10/channels/{{channel_id}}/messages",
       headers_template: {
-        "Authorization" => "Bot {{credentials.discord_bot_token}}"
+        "Authorization" => "Bot {{credential.discord_bot_token}}"
       },
       body_template: {
         "content" => "{{content}}"

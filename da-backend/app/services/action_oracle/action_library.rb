@@ -38,7 +38,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://discord.com/api/v10/channels/{{channel_id}}/messages",
         headers_template: {
-          "Authorization" => "Bot {{credentials.discord_bot_token}}",
+          "Authorization" => "Bot {{credential.discord_bot_token}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -102,7 +102,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.github.com/repos/{{owner}}/{{repo}}/issues",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.github_token}}",
+          "Authorization" => "Bearer {{credential.github_token}}",
           "Accept" => "application/vnd.github+json",
           "X-GitHub-Api-Version" => "2022-11-28"
         },
@@ -142,7 +142,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.github.com/repos/{{owner}}/{{repo}}/statuses/{{sha}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.github_token}}",
+          "Authorization" => "Bearer {{credential.github_token}}",
           "Accept" => "application/vnd.github+json",
           "X-GitHub-Api-Version" => "2022-11-28"
         },
@@ -185,7 +185,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.github.com/repos/{{owner}}/{{repo}}/actions/workflows/{{workflow_id}}/dispatches",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.github_token}}",
+          "Authorization" => "Bearer {{credential.github_token}}",
           "Accept" => "application/vnd.github+json",
           "X-GitHub-Api-Version" => "2022-11-28"
         },
@@ -216,7 +216,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.sendgrid.com/v3/mail/send",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.sendgrid_api_key}}",
+          "Authorization" => "Bearer {{credential.sendgrid_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -249,7 +249,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.sendgrid.com/v3/mail/send",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.sendgrid_api_key}}",
+          "Authorization" => "Bearer {{credential.sendgrid_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -282,7 +282,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.pagerduty.com/incidents",
         headers_template: {
-          "Authorization" => "Token token={{credentials.pagerduty_api_key}}",
+          "Authorization" => "Token token={{credential.pagerduty_api_key}}",
           "Accept" => "application/vnd.pagerduty+json;version=2",
           "Content-Type" => "application/json",
           "From" => "{{from_email}}"
@@ -333,7 +333,7 @@ module ActionOracle
         http_method: "PUT",
         url_template: "https://api.pagerduty.com/incidents/{{incident_id}}",
         headers_template: {
-          "Authorization" => "Token token={{credentials.pagerduty_api_key}}",
+          "Authorization" => "Token token={{credential.pagerduty_api_key}}",
           "Accept" => "application/vnd.pagerduty+json;version=2",
           "Content-Type" => "application/json",
           "From" => "{{from_email}}"
@@ -376,7 +376,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.pagerduty.com/incidents/{{incident_id}}/notes",
         headers_template: {
-          "Authorization" => "Token token={{credentials.pagerduty_api_key}}",
+          "Authorization" => "Token token={{credential.pagerduty_api_key}}",
           "Accept" => "application/vnd.pagerduty+json;version=2",
           "Content-Type" => "application/json",
           "From" => "{{from_email}}"
@@ -420,7 +420,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.hubapi.com/crm/v3/objects/contacts",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.hubspot_access_token}}",
+          "Authorization" => "Bearer {{credential.hubspot_access_token}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -462,7 +462,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.hubapi.com/crm/v3/objects/deals",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.hubspot_access_token}}",
+          "Authorization" => "Bearer {{credential.hubspot_access_token}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -504,7 +504,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.airtable.com/v0/{{base_id}}/{{table_name}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.airtable_api_key}}",
+          "Authorization" => "Bearer {{credential.airtable_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -541,7 +541,7 @@ module ActionOracle
         http_method: "PATCH",
         url_template: "https://api.airtable.com/v0/{{base_id}}/{{table_name}}/{{record_id}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.airtable_api_key}}",
+          "Authorization" => "Bearer {{credential.airtable_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -580,7 +580,7 @@ module ActionOracle
         http_method: "GET",
         url_template: "https://api.airtable.com/v0/{{base_id}}/{{table_name}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.airtable_api_key}}"
+          "Authorization" => "Bearer {{credential.airtable_api_key}}"
         },
         body_template: {},
         request_schema: {
@@ -612,7 +612,7 @@ module ActionOracle
         http_method: "DELETE",
         url_template: "https://api.airtable.com/v0/{{base_id}}/{{table_name}}/{{record_id}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.airtable_api_key}}"
+          "Authorization" => "Bearer {{credential.airtable_api_key}}"
         },
         body_template: {},
         request_schema: {
@@ -646,7 +646,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.notion.com/v1/pages",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.notion_api_key}}",
+          "Authorization" => "Bearer {{credential.notion_api_key}}",
           "Notion-Version" => "2022-06-28",
           "Content-Type" => "application/json"
         },
@@ -688,7 +688,7 @@ module ActionOracle
         http_method: "PATCH",
         url_template: "https://api.notion.com/v1/pages/{{page_id}}",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.notion_api_key}}",
+          "Authorization" => "Bearer {{credential.notion_api_key}}",
           "Notion-Version" => "2022-06-28",
           "Content-Type" => "application/json"
         },
@@ -724,7 +724,7 @@ module ActionOracle
         http_method: "PATCH",
         url_template: "https://api.notion.com/v1/blocks/{{block_id}}/children",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.notion_api_key}}",
+          "Authorization" => "Bearer {{credential.notion_api_key}}",
           "Notion-Version" => "2022-06-28",
           "Content-Type" => "application/json"
         },
@@ -766,7 +766,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.notion.com/v1/databases/{{database_id}}/query",
         headers_template: {
-          "Authorization" => "Bearer {{credentials.notion_api_key}}",
+          "Authorization" => "Bearer {{credential.notion_api_key}}",
           "Notion-Version" => "2022-06-28",
           "Content-Type" => "application/json"
         },
@@ -803,7 +803,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.datadoghq.com/api/v1/events",
         headers_template: {
-          "DD-API-KEY" => "{{credentials.datadog_api_key}}",
+          "DD-API-KEY" => "{{credential.datadog_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -841,7 +841,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.datadoghq.com/api/v2/series",
         headers_template: {
-          "DD-API-KEY" => "{{credentials.datadog_api_key}}",
+          "DD-API-KEY" => "{{credential.datadog_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -884,7 +884,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.opsgenie.com/v2/alerts",
         headers_template: {
-          "Authorization" => "GenieKey {{credentials.opsgenie_api_key}}",
+          "Authorization" => "GenieKey {{credential.opsgenie_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
@@ -925,7 +925,7 @@ module ActionOracle
         http_method: "POST",
         url_template: "https://api.opsgenie.com/v2/alerts/{{alert_identifier}}/close",
         headers_template: {
-          "Authorization" => "GenieKey {{credentials.opsgenie_api_key}}",
+          "Authorization" => "GenieKey {{credential.opsgenie_api_key}}",
           "Content-Type" => "application/json"
         },
         body_template: {
