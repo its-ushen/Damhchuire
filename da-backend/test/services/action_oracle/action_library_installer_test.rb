@@ -13,7 +13,7 @@ class ActionOracle::ActionLibraryInstallerTest < ActiveSupport::TestCase
     assert_equal "Discord: Send Message", action.name
     assert_equal "POST", action.http_method
     assert_equal({ "content" => "{{content}}" }, action.body_template)
-    assert_equal "Bot {{credentials.discord_bot_token}}", action.headers_template["Authorization"]
+    assert_equal "Bot {{credential.discord_bot_token}}", action.headers_template["Authorization"]
   end
 
   test "updates an existing action definition" do
