@@ -1,0 +1,13 @@
+[package]
+name = "chord_core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+solana-program = "4.0.0"
+
+[build-dependencies]
+cc = "1.2.60"

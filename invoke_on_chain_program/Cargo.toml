@@ -1,0 +1,10 @@
+[package]
+name = "invoke_on_chain_program"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.102"
+solana-client = "3.1.12"
+solana-sdk = "3.0.0"
+tokio = "1.52.1"

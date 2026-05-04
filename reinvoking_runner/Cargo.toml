@@ -1,0 +1,16 @@
+[package]
+name = "reinvoking_runner"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+solana-sdk = "3.0.0"
+solana-sbpf = { path = "../sbpf" }
+test_utils = { path = "../sbpf/test_utils"}
+solana-client = "3.1.12"
+tokio = "1.52.1"
+anyhow = "1.0.102"
+solana-pubsub-client = "3.1.12"
+futures-util = "0.3.32"
+reqwest = { version = "0.13.3", features = ["json"] }
+serde = "1.0.228"
