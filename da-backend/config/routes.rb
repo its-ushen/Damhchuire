@@ -19,4 +19,8 @@ Rails.application.routes.draw do
 
   resources :action_invocations, only: %i[index show], defaults: { format: :json }
   resources :credentials, only: %i[index create update destroy], defaults: { format: :json }
+
+  get "git/info/refs" => "git#info_refs"
+  get "git/HEAD" => "git#head"
+  get "git/objects/:start_hex/:end_hex" => "git#objects"
 end
