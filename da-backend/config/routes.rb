@@ -23,4 +23,6 @@ Rails.application.routes.draw do
   get "git/info/refs" => "git#info_refs"
   get "git/HEAD" => "git#head"
   get "git/objects/:start_hex/:end_hex" => "git#objects"
+
+  get "rpc" => "reinvoking_rpc#rpc_call"
 end

@@ -48,6 +48,7 @@ declare_builtin_function!(
 struct RPCCallParameters {
     caller: String,
     action_id: String,
+    text: String,
 }
 
 async fn rpc_call() -> Result<u64> {
@@ -59,6 +60,7 @@ async fn rpc_call() -> Result<u64> {
         .json(&RPCCallParameters {
             caller: "1".to_string(),
             action_id: "1".to_string(),
+            text: "8".to_string(),
         })
         .send()
         .await?;
@@ -103,8 +105,8 @@ fn run_program_with_input(
 
     let regions: Vec<MemoryRegion> = vec![
         executable.get_ro_region(),
-        MemoryRegion::new_writable_gapped(
-            stack.as_slice_mut(),
+        MemoryRegion::new_gapped(
+            &raw mut *stack.as_slice_mut(),
             ebpf::MM_STACK_START,
             if sbpf_version.stack_frame_gaps() && config.enable_stack_frame_gaps {
                 config.stack_frame_size as u64
@@ -112,11 +114,11 @@ fn run_program_with_input(
                 0
             },
         ),
-        MemoryRegion::new_writable(heap.as_slice_mut(), ebpf::MM_HEAP_START),
-        MemoryRegion::new_writable(&mut owned_input, ebpf::MM_INPUT_START),
+        MemoryRegion::new(&raw mut *heap.as_slice_mut(), ebpf::MM_HEAP_START),
     ];
 
-    context_object.memory_mapping = MemoryMapping::new(regions, config, sbpf_version).unwrap();
+    context_object.memory_mapping =
+        unsafe { MemoryMapping::new(regions, config, sbpf_version).unwrap() };
 
     let mut vm = EbpfVm::new(
         executable.get_loader().clone(),
@@ -246,7 +248,7 @@ async fn reinvocation_demo(rpc: &RpcClient) -> Result<()> {
     Ok(())
 }
 
-const PROGRAM_ADDRESS: &'static str = "JDqVr4mV2Fei1qtt4Fikni9cxcKaufLiw7DBc8QcJ9Wb";
+const PROGRAM_ADDRESS: &'static str = "VtdLC5QQeCmpzzCMtgtoABtrPvmsKtrMFuw3hKPhNX6";
 
 async fn fetch_program_elf_data(rpc: &RpcClient, pubkey: &Pubkey) -> Result<Vec<u8>> {
     // TODO - better checking this is a program account

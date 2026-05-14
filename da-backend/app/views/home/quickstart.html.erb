@@ -1,4 +1,4 @@
-<% content_for :title, "Quickstart — Damhchuire" %>
+<% content_for :title, "Quickstart — Chord" %>
 
 <div class="page-wrap" data-controller="copy-code">
 
@@ -27,10 +27,10 @@
       <pre class="code-block qs-code-block" data-copy-code-target="code"><code><span class="c-comment"># ── 1. Add dependency ──────────────────────────────────────────</span>
 <span class="c-comment"># Cargo.toml</span>
 [dependencies]
-damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
+Chord-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 
 <span class="c-comment"># ── 2. Emit on-chain ───────────────────────────────────────────</span>
-<span class="c-keyword">use</span> damhchuire_sdk::{<span class="c-fn">call_weather_now_action_from</span>, <span class="c-fn">WeatherNowParams</span>};
+<span class="c-keyword">use</span> Chord_sdk::{<span class="c-fn">call_weather_now_action_from</span>, <span class="c-fn">WeatherNowParams</span>};
 
 <span class="c-keyword">let</span> request_id = <span class="c-fn">call_weather_now_action_from</span>(
     &<span class="c-keyword">mut</span> ctx.accounts.state,
@@ -39,7 +39,7 @@ damhchuire-sdk = <span class="c-string">{ path = "../da-sdk/rust" }</span>
 <span class="c-dim">// emits ActionRequested { request_id, action_slug, params_json }</span>
 
 <span class="c-comment"># ── 3. Handle response ─────────────────────────────────────────</span>
-<span class="c-keyword">use</span> damhchuire_sdk::<span class="c-fn">WeatherNowResponse</span>;
+<span class="c-keyword">use</span> Chord_sdk::<span class="c-fn">WeatherNowResponse</span>;
 
 <span class="c-keyword">let</span> resp: <span class="c-fn">WeatherNowResponse</span> = serde_json::<span class="c-fn">from_slice</span>(&result_json)?;
 println!(<span class="c-string">"temp: {}°C"</span>, resp.temp_c);</code></pre>

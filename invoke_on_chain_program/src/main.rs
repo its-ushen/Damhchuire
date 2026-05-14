@@ -10,7 +10,7 @@ use solana_sdk::{
 
 use anyhow::Result;
 
-const PROGRAM_ADDRESS: &'static str = "JDqVr4mV2Fei1qtt4Fikni9cxcKaufLiw7DBc8QcJ9Wb";
+const PROGRAM_ADDRESS: &'static str = "VtdLC5QQeCmpzzCMtgtoABtrPvmsKtrMFuw3hKPhNX6";
 
 #[tokio::main]
 async fn main() -> Result<()> {

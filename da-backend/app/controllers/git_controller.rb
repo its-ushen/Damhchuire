@@ -3,7 +3,7 @@ require "digest"
 
 class GitController < ActionController::API
   def info_refs
-    files = SdkGenerator::generate_sdk_from_actions([])
+    files = SdkGenerator::generate_sdk_from_actions(Action.all)
     hash_map = Git::calculate_git_hashes(files)
     head_hash = hash_map["HEAD"]
 
@@ -15,7 +15,7 @@ class GitController < ActionController::API
   end
 
   def objects
-    files = SdkGenerator::generate_sdk_from_actions([])
+    files = SdkGenerator::generate_sdk_from_actions(Action.all)
     hash_map = Git::calculate_git_hashes(files)
     total_hash = params[:start_hex] + params[:end_hex]
 
